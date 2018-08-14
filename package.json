@@ -1,7 +1,7 @@
 {
   "name": "rhinocloud-sdk",
-  "version": "1.0.0",
-  "description": "JavaScript-friendly client wrapper for the AWS SDK",
+  "version": "1.0.1",
+  "description": "Rhinogram's JavaScript-friendly client wrapper for the AWS SDK",
   "engines": {
     "yarn": "1.x",
     "node": "8.x",
@@ -9,7 +9,7 @@
   },
   "main": "index.js",
   "author": "Rhinogram, LLC",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {},
   "dependencies": {
     "aws-sdk": "2.289.x"
