@@ -1,4 +1,7 @@
 # rhinocloud-sdk
+Rhinocloud acts as an abstraction layer for the `aws-sdk` that uses JavaScript-friendly syntax, such as camel case functions and parameters; and
+also handles certain errors that can cause frustrations or unnecessary code to work around the CloudFormation API.
+
 #### Dependencies
 * Node v 8.x and higher
 
