@@ -33,6 +33,7 @@ const rhinocloud = new Rhinocloud();
 ```
 
 ## CloudFormation Functions
+### changeTerminationProtection
 * `changeTerminationProtection(parameters)`: <Promise> Update CloudFormation termination protection.
 #### parameters properties
   * `stackName` (string) `required`: Name of CloudFormation stack.
@@ -50,6 +51,7 @@ async function turnOnTerminationProtection() {
 turnOnTerminationProtection();
 ```
 
+### cloudForm
 * `cloudForm(parameters)`: <Promise> Update existing CloudFormation stack or create new stack if it does not already exist.
 #### parameters properties
   * `templatePath` (string) `required`: Absolute file path of a CloudFormation template (can be JSON or YAML).
@@ -102,6 +104,7 @@ async function createOrUpdate() {
 createOrUpdate();
 ```
 
+### deleteStack
 * `deleteStack(parameters)`: <Promise> Delete CloudFormation stack.
 #### parameters properties
   * `stackName` (string) `required`: Name of CloudFormation stack to delete.
@@ -119,6 +122,7 @@ async function delete() {
 delete();
 ```
 
+### stackExists
 * `stackExists(stackName)`: <Promise> Returns `true` or `false` if a CloudFormation stack exists.
 #### arguments
   * `stackName` (string) `required`: Name of CloudFormation stack.
@@ -132,6 +136,7 @@ logIfStackExists();
 ```
 
 ## S3 Functions
+### listBuckets
 * `listBuckets()`: <Promise> Returns an array of objects that each contain `Name` (string) and `CreationDate` (timestamp)
 ```bash
 async function logAllBucketsInAccount() {
@@ -142,6 +147,7 @@ async function logAllBucketsInAccount() {
 logAllBucketsInAccount();
 ```
 
+### getBucket
 * `getBucket(bucketName)`: <Promise> Returns an array of objects that each contain:
   * `Key` (string)
   * `LastModified` (timestamp)
