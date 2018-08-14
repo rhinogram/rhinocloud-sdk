@@ -3,7 +3,7 @@ const { CloudFormation } = require('aws-sdk');
 const sdkVersions = require('../../sdkVersions.json');
 const helpers = require('./toolbox/helpers');
 
-function cloudFormation() {
+function CloudFormationWrapper() {
   const cf = new CloudFormation({ apiVersion: sdkVersions.CloudFormation });
 
   // ----------------------- API functions ---------------------- //
@@ -138,7 +138,7 @@ function cloudFormation() {
   this.stackExists = stackExists;
 }
 
-cloudFormation.prototype = Object.create(cloudFormation.prototype);
-cloudFormation.prototype.constructor = cloudFormation;
+CloudFormationWrapper.prototype = Object.create(CloudFormationWrapper.prototype);
+CloudFormationWrapper.prototype.constructor = CloudFormationWrapper;
 
-module.exports = cloudFormation;
+module.exports = CloudFormationWrapper;

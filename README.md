@@ -1,6 +1,7 @@
 # rhinocloud-sdk
 Rhinocloud acts as an abstraction layer for the `aws-sdk` that uses JavaScript-friendly syntax, such as camel case functions and parameters; and
-also handles certain errors that can cause frustrations or unnecessary code to work around the CloudFormation API.
+also handles certain errors that can cause frustrations or unnecessary code to work around the API's. Rhinocloud-sdk is meant to be
+a mirco package to make developing in AWS as easy as possible.
 
 #### Dependencies
 * Node v 8.x and higher
@@ -129,6 +130,7 @@ delete();
 * `stackExists(stackName)`: <Promise> Returns `true` or `false` if a CloudFormation stack exists.
 #### arguments
   * `stackName` (string) `required`: Name of CloudFormation stack.
+#### Example
 ```bash
 async function logIfStackExists() {
   const exists = await rhinocloud.stackExists('a-stack-name-to-check');
@@ -141,6 +143,7 @@ logIfStackExists();
 ## S3 Functions
 ### listBuckets
 * `listBuckets()`: <Promise> Returns an array of objects that each contain `Name` (string) and `CreationDate` (timestamp)
+#### Example
 ```bash
 async function logAllBucketsInAccount() {
   const resp = await rhinocloud.listBuckets();
@@ -162,6 +165,7 @@ logAllBucketsInAccount();
     * `ID` (string)
 #### arguments
   * `bucketName` (string): Name of the S3 Bucket to get bucket contents.
+#### Example
 ```bash
 async function logBucketContents(name) {
   const resp = await rhinocloud.getBucket(name);
@@ -169,4 +173,24 @@ async function logBucketContents(name) {
 }
 
 logBucketContents('name-of-your-bucket');
+```
+
+### downloadS3File
+* `downloadSeFile(parameters)`: <Promise> Create read/write streams to download a file from S3
+#### parameters properties
+  * `bucket` (string) `required`: Name of an S3 Bucket in your AWS account
+  * `s3FileName` (string) `required`: File path of the target object, relative to the root of the bucket.
+  * `destinationFileName` (string) `required`: File path of what to save the downloaded object as.
+#### Example
+```bash
+async function downloadFile() {
+  # this is how you would download s3://your-s3-bucket/dir/examples/example.txt to ./example.txt
+  await rhinocloud.downloadS3File({
+    bucket: 'your-s3-bucket',
+    s3FileName: '/dir/examples/example.txt',
+    destinationFileName: 'example.txt'
+  });
+}
+
+downloadFile();
 ```

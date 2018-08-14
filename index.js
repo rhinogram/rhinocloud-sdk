@@ -13,6 +13,7 @@ function Rhinocloud() {
   const s3 = new S3Wrapper();
   this.listBuckets = s3.listBuckets;
   this.getBucket = s3.getBucket;
+  this.downloadS3File = s3.downloadS3File;
 }
 
 Rhinocloud.prototype = Object.create(Rhinocloud.prototype);

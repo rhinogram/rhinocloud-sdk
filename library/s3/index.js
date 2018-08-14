@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { S3 } = require('aws-sdk');
 const sdkVersions = require('../../sdkVersions.json');
 
@@ -15,8 +16,23 @@ function s3Wrapper() {
     return Contents;
   }
 
+  async function downloadS3File({ bucket, s3FileName, destinationFileName }) {
+    return new Promise((res) => {
+      const getParams = {
+        Bucket: bucket,
+        Key: s3FileName
+      };
+      const readStream = s3.getObject(getParams).createReadStream();
+      const writeStream = fs.createWriteStream(destinationFileName);
+      readStream.pipe(writeStream);
+
+      writeStream.on('finish', res);
+    });
+  }
+
   this.listBuckets = listBuckets;
   this.getBucket = getBucket;
+  this.downloadS3File = downloadS3File;
 }
 
 s3Wrapper.prototype = Object.create(s3Wrapper.prototype);
