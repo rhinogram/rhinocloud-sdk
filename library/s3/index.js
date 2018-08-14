@@ -17,7 +17,10 @@ function s3Wrapper() {
   }
 
   async function downloadS3File({ bucket, s3FileName, destinationFileName }) {
-    return new Promise((res) => {
+    return new Promise((res, rej) => {
+      if (!bucket || !s3FileName || !destinationFileName) {
+        rej(`Missing parameters for downloadS3File()`);
+      }
       const getParams = {
         Bucket: bucket,
         Key: s3FileName
@@ -26,6 +29,7 @@ function s3Wrapper() {
       const writeStream = fs.createWriteStream(destinationFileName);
       readStream.pipe(writeStream);
 
+      writeStream.on('error', rej);
       writeStream.on('finish', res);
     });
   }
