@@ -168,7 +168,7 @@ logBucketContents('name-of-your-bucket');
 ```
 
 ### downloadS3File
-* `downloadSeFile(parameters)`: <Promise> Create read/write streams to download a file from S3
+* `downloadS3File(parameters)`: <Promise> Create read/write streams to download a file from S3
 #### parameters properties
   * `bucket` (string) `required`: Name of an S3 Bucket in your AWS account.
   * `s3FileName` (string) `required`: File path of the target object, relative to the root of the bucket.
