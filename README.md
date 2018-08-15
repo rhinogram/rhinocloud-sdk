@@ -1,27 +1,19 @@
 # rhinocloud-sdk
-Rhinocloud acts as an abstraction layer for the `aws-sdk` that uses JavaScript-friendly syntax, such as camel case functions and parameters; and
-also handles certain errors that can cause frustrations or unnecessary code to work around the API's. Rhinocloud-sdk is meant to be
-a mirco package to make developing in AWS as easy as possible.
+Rhinocloud-sdk acts as an abstraction layer for the `aws-sdk` that uses JavaScript-friendly syntax, such as camel case functions 
+and parameters; Rhinogram uses this tool to make deploying CloudFormation easy and painless. Rhinocloud-sdk is meant to be
+a lightweight, micro package to make developing in AWS as easy as possible.
 
 #### Dependencies
 * Node v 8.x and higher
 
 #### Usage
-* `ES6`
 ```bash
 import Rhinocloud from 'rhinocloud-sdk';
 
 const rhinocloud = new Rhinocloud();
 ```
 
-* `ES5`
-```bash
-const Rhinocloud = require('rhinocloud-sdk');
-
-const rhinocloud = new Rhinocloud();
-```
-
-* Note: AWS Environment keys must be set before importing/requiring module:
+* Note: AWS Environment keys must be set before instantiating a new instance:
   * `AWS_ACCESS_KEY_ID`
   * `AWS_SECRET_ACCESS_KEY`
   * `AWS_REGION`
@@ -60,7 +52,7 @@ turnOnTerminationProtection();
 #### parameters properties
   * `templatePath` (string) `required`: Absolute file path of a CloudFormation template (can be JSON or YAML).
   * `stackName` (string) `required`: Name of a CloudFormation stack (must be unique across AWS account).
-  * `options` (oject) `optional`:
+  * `options` (object) `optional`:
     * `waitToComplete` (boolean):  Wait on a success or failure response (defaults to `true`).
     * `stdout` (boolean): Print standard output to the console (defaults to `true`).
     * `parameters` (array): CloudFormation parameters that correlate to the CloudFormation template. Each object in the array must contain:
@@ -178,7 +170,7 @@ logBucketContents('name-of-your-bucket');
 ### downloadS3File
 * `downloadSeFile(parameters)`: <Promise> Create read/write streams to download a file from S3
 #### parameters properties
-  * `bucket` (string) `required`: Name of an S3 Bucket in your AWS account
+  * `bucket` (string) `required`: Name of an S3 Bucket in your AWS account.
   * `s3FileName` (string) `required`: File path of the target object, relative to the root of the bucket.
   * `destinationFileName` (string) `required`: File path of what to save the downloaded object as.
 #### Example
@@ -193,4 +185,116 @@ async function downloadFile() {
 }
 
 downloadFile();
+```
+
+
+### uploadS3Directory
+* `uploadS3Directory(parameters)`: <Promise> Upload a folder/directory to an S3 bucket
+#### parameters properties
+  * `bucket` (string) `required`: Name of an S3 Bucket in your AWS account.
+  * `s3Location` (string) `required`: S3 path where to upload the folder/directory within the bucket.
+  * `sourceDirectory` (string) `required`: Local file path of folder/directory to upload.
+  * `options` (object) `optional`:
+    * `acl` (string)
+    * `cacheControl` (string)
+    * `contentDisposition` (string)
+    * `contentEncoding` (string)
+    * `contentLanguage` (string)
+    * `contentLength` (number)
+    * `contentMd5` (string)
+    * `contentType` (string)
+    * `expires` (timestamp)
+    * `grantFullControl` (string)
+    * `grantRead` (string)
+    * `grantReadAcp` (string)
+    * `grantWriteAcp` (string)
+    * `metadata` (object)
+    * `sseCustomerAlgorithm` (string)
+    * `sseCustomerKey` (buffer || string)
+    * `sseCustomemrKeyMd5` (string)
+    * `sseKmsKeyId` (string)
+    * `serverSideEncryption` (string)
+    * `storageClass` (string)
+    * `tagging` (string)
+    * `websiteRedirectionLocation` (string)
+    * `storageClass` (string)
+#### Example
+```bash
+# upload a folder called "localFolder" to s3://your-s3-bucket/localFolder/
+async function uploadFolder() {
+  const additionalOptions = {
+    acl: 'public-read'
+  };
+
+  await rhinocloud.uploadS3Directory({
+    bucket: 'your-s3-bucket',
+    s3Location: '',
+    sourceDirectory: 'localFolder',
+    options: additionalOptions
+  });
+}
+
+uploadFolder();
+```
+```bash
+# upload a folder called "localFolder" to s3://your-s3-bucket/storage/localFolder/
+async function uploadFolder() {
+  const additionalOptions = {
+    acl: 'private'
+  };
+
+  await rhinocloud.uploadS3Directory({
+    bucket: 'your-s3-bucket',
+    s3Location: 'storage/',
+    sourceDirectory: 'localFolder',
+    options: additionalOptions
+  });
+}
+
+uploadFolder();
+```
+
+
+### uploadS3File
+* `uploadS3File(parameters)`: <Promise> Upload a file to an S3 bucket.
+#### parameters properties
+  * `bucket` (string) `required`: Name of an S3 Bucket in your AWS account.
+  * `s3FileName` (string) `required`: Resulting name of the uploaded file.
+  * `sourceFileName` (string) `required`: Name of local file to upload.
+  * `options` (object) `optional`:
+    * `acl` (string)
+    * `cacheControl` (string)
+    * `contentDisposition` (string)
+    * `contentEncoding` (string)
+    * `contentLanguage` (string)
+    * `contentLength` (number)
+    * `contentMd5` (string)
+    * `contentType` (string)
+    * `expires` (timestamp)
+    * `grantFullControl` (string)
+    * `grantRead` (string)
+    * `grantReadAcp` (string)
+    * `grantWriteAcp` (string)
+    * `metadata` (object)
+    * `sseCustomerAlgorithm` (string)
+    * `sseCustomerKey` (buffer || string)
+    * `sseCustomemrKeyMd5` (string)
+    * `sseKmsKeyId` (string)
+    * `serverSideEncryption` (string)
+    * `storageClass` (string)
+    * `tagging` (string)
+    * `websiteRedirectionLocation` (string)
+    * `storageClass` (string)
+#### Example
+```bash
+# upload a file called test.txt to s3://your-s3-bucket/files/test.txt
+async function upload() {
+  await rhinocloud.uploadS3File({
+    bucket: 'your-s3-bucket',
+    s3FileName: 'files/test.txt',
+    sourceFileName: 'test.txt'
+  });
+}
+
+upload();
 ```

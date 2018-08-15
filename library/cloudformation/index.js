@@ -1,12 +1,12 @@
 const fs = require('fs');
 const { CloudFormation } = require('aws-sdk');
-const sdkVersions = require('../../sdkVersions.json');
-const helpers = require('./toolbox/helpers');
+const apiVersions = require('../../apiVersions.json');
+const paramTools = require('./toolbox/parameter.tools');
 
 function CloudFormationWrapper() {
-  const cf = new CloudFormation({ apiVersion: sdkVersions.CloudFormation });
+  const cf = new CloudFormation({ apiVersion: apiVersions.CloudFormation });
 
-  // ----------------------- API functions ---------------------- //
+  // -------------------------- API functions ---------------------------- //
   async function changeTerminationProtection({ stackName, enableTerminationProtection }) {
     const updateParams = {
       StackName: stackName,
@@ -27,7 +27,7 @@ function CloudFormationWrapper() {
     }
 
     const stackAlreadyExists = await stackExists(stackName);
-    const { waitToComplete, parameters, stdout, enableTerminationProtection } = helpers.getOptions(options);
+    const { waitToComplete, parameters, stdout, enableTerminationProtection } = paramTools.getOptions(options);
 
     if (stackAlreadyExists) {
       await updateStack(stackName, templatePath, parameters, stdout);
@@ -45,7 +45,7 @@ function CloudFormationWrapper() {
       TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
       EnableTerminationProtection: enableTerminationProtection,
       Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
-      Parameters: helpers.getCloudFormationParameters(parameters)
+      Parameters: paramTools.getCloudFormationParameters(parameters)
     };
     const resp = await cf.createStack(params).promise();
     return resp;
@@ -54,7 +54,7 @@ function CloudFormationWrapper() {
   async function deleteStack({ stackName, options }) {
     const deleteParams = { StackName: stackName };
     const resp = await cf.deleteStack(deleteParams).promise();
-    const { waitToComplete, stdout } = helpers.getOptions(options);
+    const { waitToComplete, stdout } = paramTools.getOptions(options);
     if (waitToComplete) {
       try {
         await waitOnStackToStabilize(stackName, stdout);
@@ -89,7 +89,7 @@ function CloudFormationWrapper() {
       const updateParams = {
         StackName: stackName,
         TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
-        Parameters: helpers.getCloudFormationParameters(parameters)
+        Parameters: paramTools.getCloudFormationParameters(parameters)
       };
       const resp = await cf.updateStack(updateParams).promise();
       return resp;
@@ -131,13 +131,14 @@ function CloudFormationWrapper() {
     }
   }
 
-  // ----------------------------- external functions ---------------------- //
+  // ------------------------- expose functions --------------------------- //
   this.changeTerminationProtection = changeTerminationProtection;
   this.cloudForm = cloudForm;
   this.deleteStack = deleteStack;
   this.stackExists = stackExists;
 }
 
+// -------------------------------- export ------------------------------- //
 CloudFormationWrapper.prototype = Object.create(CloudFormationWrapper.prototype);
 CloudFormationWrapper.prototype.constructor = CloudFormationWrapper;
 

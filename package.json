@@ -1,7 +1,7 @@
 {
   "name": "rhinocloud-sdk",
   "version": "1.0.1",
-  "description": "Rhinogram's JavaScript-friendly client wrapper for the AWS SDK",
+  "description": "Rhinogram's JavaScript-friendly toolbox for CloudFormation deployments",
   "engines": {
     "yarn": "1.x",
     "node": "8.x",
