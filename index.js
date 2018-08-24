@@ -16,6 +16,8 @@ function Rhinocloud() {
   this.downloadS3File = s3.downloadS3File;
   this.uploadS3File = s3.uploadS3File;
   this.uploadS3Directory = s3.uploadS3Directory;
+  this.moveS3File = s3.moveS3File;
+  this.moveS3Directory = s3.moveS3Directory;
 }
 
 Rhinocloud.prototype = Object.create(Rhinocloud.prototype);
