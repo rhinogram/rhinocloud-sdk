@@ -50,7 +50,7 @@ function s3Wrapper() {
     }
   }
 
-  async function uploadS3File({ bucket, s3FileName, sourceFileName, options }) {
+  async function uploadS3File({ bucket, s3FileName, sourceFileName, options={} }) {
     if (!bucket || !s3FileName || !sourceFileName) {
       throw new Error(`uploadS3File() requires parameters properties: bucket, s3FileName, and sourceFileName`);
     } else {
@@ -60,7 +60,7 @@ function s3Wrapper() {
     }
   }
 
-  async function moveS3Directory({ sourceBucket, s3SourceDirectory, destinationBucket, s3DestinationDirectory, options }) {
+  async function moveS3Directory({ sourceBucket, s3SourceDirectory, destinationBucket, s3DestinationDirectory, options={} }) {
     if (!sourceBucket || !s3SourceDirectory || !destinationBucket || (s3DestinationDirectory !== '' && !s3DestinationDirectory)) {
       throw new Error(`moveS3Directory() requires parameters: sourceBucket, s3SourceDirectory, destinationBucket, and s3DestinationDirectory`);
     } else {
@@ -89,7 +89,7 @@ function s3Wrapper() {
     }
   }
 
-  async function moveS3File({ sourceBucket, s3SourceFile, destinationBucket, s3DestinationFile, options }) {
+  async function moveS3File({ sourceBucket, s3SourceFile, destinationBucket, s3DestinationFile, options={} }) {
     if (!sourceBucket || !s3SourceFile || !destinationBucket || !s3DestinationFile) {
       throw new Error(`moveS3File() requires parameters properties: sourceBucket, s3SourceFile, s3DestinationFile, and destinationBucket`);
     } else {

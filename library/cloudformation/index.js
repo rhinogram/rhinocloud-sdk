@@ -16,7 +16,7 @@ function CloudFormationWrapper() {
     return resp;
   }
 
-  async function cloudForm({ templatePath, stackName, options }) {
+  async function cloudForm({ templatePath, stackName, options={} }) {
     if (!templatePath || !stackName) {
       throw new Error(`Must include templatePath (string) and stackName (string) for CloudFormation`);
     } else {
@@ -51,7 +51,7 @@ function CloudFormationWrapper() {
     return resp;
   }
 
-  async function deleteStack({ stackName, options }) {
+  async function deleteStack({ stackName, options={} }) {
     const deleteParams = { StackName: stackName };
     const resp = await cf.deleteStack(deleteParams).promise();
     const { waitToComplete, stdout } = paramTools.getOptions(options);
