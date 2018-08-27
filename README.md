@@ -38,7 +38,7 @@ const rhinocloud = new Rhinocloud();
 ```bash
 # Enable termination protection:
 async function turnOnTerminationProtection() {
-  await rhinocloud.changeTerminationProtection({
+  await rhinocloud.cloudformation.changeTerminationProtection({
   stackName: 'your-stack-name-to-update',
   enableTerminationProtection: true
   });
@@ -90,7 +90,7 @@ const opts = {
 };
 
 async function createOrUpdate() {
-  await rhinocloud.cloudForm({
+  await rhinocloud.cloudformation.cloudForm({
     stackName: 'a-stack-name',
     templatePath: `${__dirname}/template.yml`,
     options: opts
@@ -110,7 +110,7 @@ createOrUpdate();
 #### Example
 ```bash
 async function delete() {
-  await rhinocloud.deleteStack({
+  await rhinocloud.cloudformation.deleteStack({
     stackName: 'stack-to-remove'
   });
 }
@@ -125,7 +125,7 @@ delete();
 #### Example
 ```bash
 async function logIfStackExists() {
-  const exists = await rhinocloud.stackExists('a-stack-name-to-check');
+  const exists = await rhinocloud.cloudformation.stackExists('a-stack-name-to-check');
   console.log(exists);
 }
 
@@ -138,7 +138,7 @@ logIfStackExists();
 #### Example
 ```bash
 async function logAllBucketsInAccount() {
-  const resp = await rhinocloud.listBuckets();
+  const resp = await rhinocloud.s3.listBuckets();
   console.log(resp);
 }
 
@@ -160,7 +160,7 @@ logAllBucketsInAccount();
 #### Example
 ```bash
 async function logBucketContents(name) {
-  const resp = await rhinocloud.getBucket(name);
+  const resp = await rhinocloud.s3.getBucket(name);
   console.log(resp);
 }
 
@@ -177,7 +177,7 @@ logBucketContents('name-of-your-bucket');
 ```bash
 async function downloadFile() {
   # this is how you would download s3://your-s3-bucket/dir/examples/example.txt to ./example.txt
-  await rhinocloud.downloadS3File({
+  await rhinocloud.s3.downloadS3File({
     bucket: 'your-s3-bucket',
     s3FileName: '/dir/examples/example.txt',
     destinationFileName: 'example.txt'
@@ -185,6 +185,117 @@ async function downloadFile() {
 }
 
 downloadFile();
+```
+
+### moveS3File
+* `moveS3File(parameters): <Promise> Copy s3 file to another location and delete file from old location
+#### parameters properties
+  * `sourceBucket` (string) `required`: Name of the S3 bucket where the file originated.
+  * `s3SourceFile` (string) `required`: S3 Key to move.
+  * `destinationBucket` (string) `required`: Name of S3 Bucket where the file should be moved to.
+  * `s3DestinationFile` (string) `required`: Resulting S3 key name of the new file location.
+  * `options` (object) `optional`:
+    * `acl` (string)
+    * `cacheControl` (string)
+    * `contentDisposition` (string)
+    * `contentEncoding` (string)
+    * `contentLanguage` (string)
+    * `contentLength` (number)
+    * `contentMd5` (string)
+    * `contentType` (string)
+    * `copySourceIfMatch` (string)
+    * `copySourceIfModifiedSince` (string)
+    * `copySourceIfNoneMatch` (string)
+    * `copySourceIfUnmodifiedSince` (string)
+    * `copySourceSSECustomerAlgorithm` (string)
+    * `copySourceSSECustomerKeyMd5` (string)
+    * `expires` (timestamp)
+    * `grantFullControl` (string)
+    * `grantRead` (string)
+    * `grantReadAcp` (string)
+    * `grantWriteAcp` (string)
+    * `metadata` (object)
+    * `sseCustomerAlgorithm` (string)
+    * `sseCustomerKey` (buffer || string)
+    * `sseCustomemrKeyMd5` (string)
+    * `sseKmsKeyId` (string)
+    * `serverSideEncryption` (string)
+    * `storageClass` (string)
+    * `tagging` (string)
+    * `websiteRedirectionLocation` (string)
+    * `storageClass` (string)
+#### Example
+```bash
+async function moveMyFile() {
+  # this moves s3://bucketA/files/someFile.txt to s3://bucketB/newlocation/newName.txt
+  await rhinocloud.s3.moveS3File({
+    sourceBucket: 'bucketA',
+    s3SourceFile: 'files/someFile.txt',
+    destinationBucket: 'bucketB',
+    s3DestinationFile: 'newlocation/newName.txt'
+  });
+
+  await moveMyFile();
+}
+```
+
+### moveS3Directory
+* `moveS3Directory(parameters)`: <Promise> Recursively copy directory/file from one S3 location to another.
+#### parameters properties
+  * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
+  * `s3SourceDirectory` (string) `required`: Directory in S3 to move.
+  * `destinationBucket` (string) `required`: Name of the s3 bucket in which to move the directory.
+  * `s3DestinationDirectory` (string) `required`: Name of the directory after it is moved (can also be an empty string or `/` to move the directory as is).
+  * `options` (object) `optional`:
+    * `acl` (string)
+    * `cacheControl` (string)
+    * `contentDisposition` (string)
+    * `contentEncoding` (string)
+    * `contentLanguage` (string)
+    * `contentLength` (number)
+    * `contentMd5` (string)
+    * `contentType` (string)
+    * `copySourceIfMatch` (string)
+    * `copySourceIfModifiedSince` (string)
+    * `copySourceIfNoneMatch` (string)
+    * `copySourceIfUnmodifiedSince` (string)
+    * `copySourceSSECustomerAlgorithm` (string)
+    * `copySourceSSECustomerKeyMd5` (string)
+    * `expires` (timestamp)
+    * `grantFullControl` (string)
+    * `grantRead` (string)
+    * `grantReadAcp` (string)
+    * `grantWriteAcp` (string)
+    * `metadata` (object)
+    * `sseCustomerAlgorithm` (string)
+    * `sseCustomerKey` (buffer || string)
+    * `sseCustomemrKeyMd5` (string)
+    * `sseKmsKeyId` (string)
+    * `serverSideEncryption` (string)
+    * `storageClass` (string)
+    * `tagging` (string)
+    * `websiteRedirectionLocation` (string)
+    * `storageClass` (string)
+    * `exclude` (array of strings)
+#### Example
+```bash
+# this moves all files in s3://my-bucket/files, except
+# s3://my-bucket/files/noMoveThis.txt to s3://my-bucket/movedFiles/
+async function moveSomeFiles() {
+  const options = {
+    exclude: ['files/noMoveThis.txt']
+  };
+
+  await rhinocloud.s3.moveS3Directory({
+    sourceBucket: 'my-bucket',
+    s3SourceDirectory: 'files',
+    destinationbucket: 'my-bucket',
+    s3DestinationDirectory: 'movedFiles/',
+    options
+  });
+}
+
+await moveSomeFiles();
 ```
 
 
@@ -218,6 +329,7 @@ downloadFile();
     * `tagging` (string)
     * `websiteRedirectionLocation` (string)
     * `storageClass` (string)
+    * `exclude` (array of strings)
 #### Example
 ```bash
 # upload a folder called "localFolder" to s3://your-s3-bucket/localFolder/
@@ -226,7 +338,7 @@ async function uploadFolder() {
     acl: 'public-read'
   };
 
-  await rhinocloud.uploadS3Directory({
+  await rhinocloud.s3.uploadS3Directory({
     bucket: 'your-s3-bucket',
     s3Location: '',
     sourceDirectory: 'localFolder',
@@ -243,7 +355,7 @@ async function uploadFolder() {
     acl: 'private'
   };
 
-  await rhinocloud.uploadS3Directory({
+  await rhinocloud.s3.uploadS3Directory({
     bucket: 'your-s3-bucket',
     s3Location: 'storage/',
     sourceDirectory: 'localFolder',
@@ -289,7 +401,7 @@ uploadFolder();
 ```bash
 # upload a file called test.txt to s3://your-s3-bucket/files/test.txt
 async function upload() {
-  await rhinocloud.uploadS3File({
+  await rhinocloud.s3.uploadS3File({
     bucket: 'your-s3-bucket',
     s3FileName: 'files/test.txt',
     sourceFileName: 'test.txt'

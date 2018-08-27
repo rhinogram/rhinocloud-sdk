@@ -1,4 +1,4 @@
-module.exports.getCloudFormationParameters = function (params=[]) {
+module.exports.getCloudFormationParameters = (params=[]) => {
   return params.map((p) => {
     const { key, value } = p;
     return {
@@ -9,7 +9,7 @@ module.exports.getCloudFormationParameters = function (params=[]) {
 }
 
 
-module.exports.getOptions = function (options={}) {
+module.exports.getOptions = (options={}) => {
   return {
     waitToComplete: (options.waitToComplete === undefined) ? true : !!options.waitToComplete,
     stdout: (options.stdout === undefined) ? true : !!options.stdout,

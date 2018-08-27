@@ -1,7 +1,11 @@
 const { S3 } = require('aws-sdk');
 const apiVersions = require('../../apiVersions.json');
 const { getS3UploadParameters, getS3MoveParameters } = require('./toolbox/action.tools');
-const { getFilePathsFromDirectory, writeFileFromStream } = require('./toolbox/file.tools');
+const {
+  getFilePathsFromDirectory,
+  writeFileFromStream,
+  getFileNameFromS3Key
+} = require('./toolbox/file.tools');
 
 function s3Wrapper() {
   const s3 = new S3({ apiVersion: apiVersions.S3 });
@@ -30,13 +34,16 @@ function s3Wrapper() {
     await writeFileFromStream(readStream, destinationFileName);
   }
 
-  async function uploadS3Directory({ bucket, s3Location, sourceDirectory, options }) {
+  async function uploadS3Directory({ bucket, s3Location, sourceDirectory, options={} }) {
     if (!bucket || (s3Location === undefined || s3Location === null) || !sourceDirectory) {
       throw new Error(`uploadS3Directory() requires parameters properties: bucket, s3Location, and sourceDirectory`);
     } else {
-      const filePathsArr = getFilePathsFromDirectory(sourceDirectory);
+      const excludeFiles = options.exclude || [];
+      const filePathsArr = getFilePathsFromDirectory(sourceDirectory, excludeFiles);
       for (const filePath of filePathsArr) {
-        const fullS3FilePath = `${s3Location}${filePath}`;
+        // this allows the use of directory or directory/
+        const slash = s3Location[s3Location.length - 1] === '/' ? '' : '/';
+        const fullS3FilePath = `${s3Location}${slash}${filePath}`;
         const s3UploadOptions = getS3UploadParameters(bucket, fullS3FilePath, filePath, options);
         await s3.putObject(s3UploadOptions).promise();
       }
@@ -54,7 +61,7 @@ function s3Wrapper() {
   }
 
   async function moveS3Directory({ sourceBucket, s3SourceDirectory, destinationBucket, s3DestinationDirectory, options }) {
-    if (!sourceBucket || !s3SourceDirectory || !destinationBucket || !s3DestinationDirectory) {
+    if (!sourceBucket || !s3SourceDirectory || !destinationBucket || (s3DestinationDirectory !== '' && !s3DestinationDirectory)) {
       throw new Error(`moveS3Directory() requires parameters: sourceBucket, s3SourceDirectory, destinationBucket, and s3DestinationDirectory`);
     } else {
       const listParams = {
@@ -66,7 +73,10 @@ function s3Wrapper() {
       const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
       
       for (const key of mappedKeys) {
-        const newKey = (s3DestinationDirectory !== '' && s3DestinationDirectory !== '/') ? `${s3DestinationDirectory}${key}` : key;
+        const fileName = getFileNameFromS3Key(key);
+        // this allows the use of directory or directory/
+        const slash = s3DestinationDirectory[s3DestinationDirectory.length - 1] === '/' ? '' : '/';
+        const newKey = (s3DestinationDirectory !== '' && s3DestinationDirectory !== '/') ? `${s3DestinationDirectory}${slash}${fileName}` : key;
         const moveParams = {
           sourceBucket,
           s3SourceFile: key,

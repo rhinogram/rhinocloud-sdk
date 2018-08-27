@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-module.exports.convertFilePathToBuffer = function (filePath='') {
+module.exports.convertFilePathToBuffer = (filePath='') => {
   const exists = fs.existsSync(filePath);
 
   if (!exists) {
@@ -10,7 +10,15 @@ module.exports.convertFilePathToBuffer = function (filePath='') {
   }
 };
 
-module.exports.getFilePathsFromDirectory = function (directoryPath='') {
+
+module.exports.getFileNameFromS3Key = (key='') => {
+  const splitArr = key.split('/');
+  const lastIdx = splitArr.length - 1;
+  return (splitArr.length > 0) ? splitArr[lastIdx] : key;
+};
+
+
+module.exports.getFilePathsFromDirectory = (directoryPath='', excludeFiles=[]) => {
   const readRes = fs.readdirSync(directoryPath);
   const files = readRes.map((f) => {
     const fullPath = `${directoryPath}/${f}`;
@@ -21,11 +29,14 @@ module.exports.getFilePathsFromDirectory = function (directoryPath='') {
       return fullPath;
     }
   });
+
+  const filtered = files.filter((f) => !excludeFiles.includes(f));
   // flatten the array of arrays
-  return [].concat.apply([], files);
+  return [].concat.apply([], filtered);
 };
 
-module.exports.writeFileFromStream = function(readStream, destinationFilePath) {
+
+module.exports.writeFileFromStream = (readStream, destinationFilePath) => {
   const writeStream = fs.createWriteStream(destinationFilePath);
   return new Promise((res, rej) => {
     readStream.pipe(writeStream);
