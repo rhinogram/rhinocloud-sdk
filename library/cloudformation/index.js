@@ -89,6 +89,7 @@ function CloudFormationWrapper() {
       const updateParams = {
         StackName: stackName,
         TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
+        Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
         Parameters: paramTools.getCloudFormationParameters(parameters)
       };
       const resp = await cf.updateStack(updateParams).promise();
