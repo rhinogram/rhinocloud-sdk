@@ -45,7 +45,10 @@ function s3Wrapper() {
         const slash = s3Location[s3Location.length - 1] === '/' ? '' : '/';
         const fullS3FilePath = `${s3Location}${slash}${filePath}`;
         const s3UploadOptions = getS3UploadParameters(bucket, fullS3FilePath, filePath, options);
+        const waitInterval = options.throttleInterval || 100;
+        await new Promise((res) => setTimeout(res, waitInterval));
         await s3.putObject(s3UploadOptions).promise();
+        console.log(`${filePath} to ${fullS3FilePath}`);
       }
     }
   }
@@ -71,7 +74,7 @@ function s3Wrapper() {
       const { Contents:keyObjects } = await s3.listObjects(listParams).promise();
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
-      
+
       for (const key of mappedKeys) {
         const fileName = getFileNameFromS3Key(key);
         // this allows the use of directory or directory/
@@ -84,7 +87,11 @@ function s3Wrapper() {
           s3DestinationFile: newKey,
           options
         };
+
+        const waitInterval = options.throttleInterval || 100;
+        await new Promise((res) => setTimeout(res, waitInterval));
         await moveS3File(moveParams);
+        console.log(`s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
       }
     }
   }
@@ -95,6 +102,7 @@ function s3Wrapper() {
     } else {
       const s3MoveOptions = getS3MoveParameters(sourceBucket, destinationBucket, s3SourceFile, s3DestinationFile, options);
       const resp = await s3.copyObject(s3MoveOptions).promise();
+
       // check for this to ensure the promise resolves before deleting
       if (!!resp) {
         const deleteParams = {

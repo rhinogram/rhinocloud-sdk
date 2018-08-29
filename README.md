@@ -277,6 +277,7 @@ async function moveMyFile() {
     * `websiteRedirectionLocation` (string)
     * `storageClass` (string)
     * `exclude` (array of strings)
+    * `throttleInterval` (number): Ms of delay in between S3 requests for each file
 #### Example
 ```bash
 # this moves all files in s3://my-bucket/files, except
@@ -330,6 +331,7 @@ await moveSomeFiles();
     * `websiteRedirectionLocation` (string)
     * `storageClass` (string)
     * `exclude` (array of strings)
+    * `throttleInterval` (number): Ms of delay in between S3 requests for each file
 #### Example
 ```bash
 # upload a folder called "localFolder" to s3://your-s3-bucket/localFolder/
