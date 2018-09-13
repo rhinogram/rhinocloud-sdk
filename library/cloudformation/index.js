@@ -70,6 +70,11 @@ function CloudFormationWrapper() {
     return resp;
   }
 
+  async function getStackOutputs(stackName='') {
+    const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
+    return Stacks.pop();
+  }
+
   async function stackExists (stackName='') {
     try {
       const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
@@ -137,6 +142,7 @@ function CloudFormationWrapper() {
   this.cloudForm = cloudForm;
   this.deleteStack = deleteStack;
   this.stackExists = stackExists;
+  this.getStackOutputs = getStackOutputs;
 }
 
 // -------------------------------- export ------------------------------- //
