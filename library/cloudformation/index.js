@@ -12,7 +12,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   });
 
   // -------------------------- API functions ---------------------------- //
-  async function changeTerminationProtection({ stackName, enableTerminationProtection }) {
+  async function changeTerminationProtection({ stackName, enableTerminationProtection } = {}) {
     const updateParams = {
       StackName: stackName,
       EnableTerminationProtection: enableTerminationProtection
@@ -21,7 +21,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     return resp;
   }
 
-  async function cloudForm({ templatePath, stackName, options={} }) {
+  async function cloudForm({ templatePath, stackName, options={} } = {}) {
     if (!templatePath || !stackName) {
       throw new Error(`Must include templatePath (string) and stackName (string) for CloudFormation`);
     } else {
@@ -56,7 +56,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     return resp;
   }
 
-  async function deleteStack({ stackName, options={} }) {
+  async function deleteStack({ stackName, options={} } = {}) {
     const deleteParams = { StackName: stackName };
     const resp = await cf.deleteStack(deleteParams).promise();
     const { waitToComplete, stdout } = paramTools.getOptions(options);
