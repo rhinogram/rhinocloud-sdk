@@ -24,7 +24,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
   async function getBucket({ bucket='', key = undefined } = {}) {
     const listParams = {
       Bucket: bucket,
-      ...!!key && { Delimiter: key },
+      ...!!key && { Delimiter: '/', Prefix: key },
     };
     const { Contents } = await s3.listObjects(listParams).promise();
     return Contents;
