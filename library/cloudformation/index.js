@@ -3,8 +3,13 @@ const { CloudFormation } = require('aws-sdk');
 const apiVersions = require('../../apiVersions.json');
 const paramTools = require('./toolbox/parameter.tools');
 
-function CloudFormationWrapper() {
-  const cf = new CloudFormation({ apiVersion: apiVersions.CloudFormation });
+function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
+  const cf = new CloudFormation({
+    apiVersion: apiVersions.CloudFormation,
+    accessKeyId,
+    secretAccessKey,
+    region
+  });
 
   // -------------------------- API functions ---------------------------- //
   async function changeTerminationProtection({ stackName, enableTerminationProtection }) {

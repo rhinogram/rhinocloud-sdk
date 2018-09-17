@@ -2,23 +2,9 @@ const CloudFormationWrapper = require('./library/cloudformation');
 const S3Wrapper = require('./library/s3');
 const dotenv =  require('dotenv').config()
 
-function Rhinocloud() {
-  this.cloudformation = new CloudFormationWrapper();
-  this.s3 = new S3Wrapper();
-}
-
-Rhinocloud.prototype.setKeys = function(awsAccesKeyId, awsSecretKey, awsRegion) {
-  this.awsAccesKeyId = awsAccesKeyId;
-  this.awsSecretKey = awsSecretKey;
-  this.awsRegion = awsRegion;
-}
-
-Rhinocloud.prototype.getKeys = function() {
-  return {
-    awsAccesKeyId: this.awsAccesKeyId,
-    awsSecretKey: this.awsSecretKey,
-    awsRegion: this.awsRegion,
-  };
+function Rhinocloud({ accessKeyId, secretAccessKey, region }) {
+  this.cloudformation = new CloudFormationWrapper({ accessKeyId, secretAccessKey, region });
+  this.s3 = new S3Wrapper({ accessKeyId, secretAccessKey, region });
 }
 
 

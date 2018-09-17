@@ -1,6 +1,5 @@
 const { S3 } = require('aws-sdk');
 const apiVersions = require('../../apiVersions.json');
-const RhinoCloud = require('../index');
 const { getS3UploadParameters, getS3MoveParameters } = require('./toolbox/action.tools');
 const {
   getFilePathsFromDirectory,
@@ -8,8 +7,13 @@ const {
   getFileNameFromS3Key
 } = require('./toolbox/file.tools');
 
-function s3Wrapper() {
-  const s3 = new S3({ apiVersion: apiVersions.S3 });
+function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
+  const s3 = new S3({
+    apiVersion: apiVersions.S3,
+    accessKeyId,
+    secretAccessKey,
+    region
+  });
 
   // ---------------------------- API functions --------------------------- //
   async function listBuckets() {
@@ -129,8 +133,7 @@ function s3Wrapper() {
 }
 
 // ------------------------------- export ----------------------------- //
-s3Wrapper.prototype = Object.create(RhinoCloud.prototype);
+s3Wrapper.prototype = Object.create(s3Wrapper.prototype);
 s3Wrapper.prototype.constructor = s3Wrapper;
-s3Wrapper.getKeys = RhinoCloud.getKeys;
 
 module.exports = s3Wrapper;
