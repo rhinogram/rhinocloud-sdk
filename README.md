@@ -161,7 +161,7 @@ logAllBucketsInAccount();
     * `ID` (string)
 #### arguments
   * `bucketName` (string) `required`: Name of the S3 Bucket to get bucket contents.
-  * `key` (string) `optional` : Name of the Object/Key to get - this can be a folder path or file.
+  * `s3ObjectName` (string) `optional` : Name of the folder/file to get - this is a path to a file or folder with '/' Delimiter.
 #### Example
 ```bash
 async function logBucketContents(name) {
