@@ -13,6 +13,8 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
 
   // -------------------------- API functions ---------------------------- //
   async function changeTerminationProtection({ stackName, enableTerminationProtection } = {}) {
+    if (!templatePath || !enableTerminationProtection) {
+      throw new Error(`Must include enableTerminationProtection (string) and stackName (string) for CloudFormation`);
     const updateParams = {
       StackName: stackName,
       EnableTerminationProtection: enableTerminationProtection
