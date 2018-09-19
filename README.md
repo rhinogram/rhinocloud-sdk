@@ -1,5 +1,5 @@
 # rhinocloud-sdk
-Rhinocloud-sdk acts as an abstraction layer for the `aws-sdk` that uses JavaScript-friendly syntax, such as camel case functions 
+Rhinocloud-sdk acts as an abstraction layer for the `aws-sdk` that uses JavaScript-friendly syntax, such as camel case functions
 and parameters; Rhinogram uses this tool to make deploying CloudFormation easy and painless. Rhinocloud-sdk is meant to be
 a lightweight, micro package to make developing in AWS as easy as possible.
 
@@ -10,10 +10,14 @@ a lightweight, micro package to make developing in AWS as easy as possible.
 ```bash
 import Rhinocloud from 'rhinocloud-sdk';
 
-const rhinocloud = new Rhinocloud();
+const rhinocloud = new Rhinocloud({
+  accessKeyId: < Your AWS Access Key Id >,
+  secretAccessKey: < Your AWS Secret Key >,
+  region: < AWS Region >,
+  });
 ```
 
-* Note: AWS Environment keys must be set before instantiating a new instance:
+* OR You can use AWS Environment keys before instantiating a new instance:
   * `AWS_ACCESS_KEY_ID`
   * `AWS_SECRET_ACCESS_KEY`
   * `AWS_REGION`
@@ -69,7 +73,7 @@ Parameters:
 Resources:
   Bucket:
     Type: AWS::S3::Bucket
-    Properties: 
+    Properties:
       AccessControl: 'Public'
       BucketName: !Ref 'Name'
       Tags:
@@ -156,7 +160,8 @@ logAllBucketsInAccount();
     * `DisplayName` (string)
     * `ID` (string)
 #### arguments
-  * `bucketName` (string): Name of the S3 Bucket to get bucket contents.
+  * `bucketName` (string) `required`: Name of the S3 Bucket to get bucket contents.
+  * `s3ObjectName` (string) `optional` : Name of the folder/file to get - this is a path to a file or folder with '/' Delimiter.
 #### Example
 ```bash
 async function logBucketContents(name) {

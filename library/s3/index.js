@@ -7,8 +7,13 @@ const {
   getFileNameFromS3Key
 } = require('./toolbox/file.tools');
 
-function s3Wrapper() {
-  const s3 = new S3({ apiVersion: apiVersions.S3 });
+function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
+  const s3 = new S3({
+    apiVersion: apiVersions.S3,
+    accessKeyId,
+    secretAccessKey,
+    region
+  });
 
   // ---------------------------- API functions --------------------------- //
   async function listBuckets() {
@@ -16,13 +21,19 @@ function s3Wrapper() {
     return Buckets;
   }
 
-  async function getBucket(bucket='') {
-    const listParams = { Bucket: bucket };
+  async function getBucket({ bucket, prefix = undefined } = {}) {
+    if (!bucket) {
+      rej(`getBucket() requires bucket property`);
+    }
+    const listParams = {
+      Bucket: bucket,
+      ...!!prefix && { Prefix: prefix },
+    };
     const { Contents } = await s3.listObjects(listParams).promise();
     return Contents;
   }
 
-  async function downloadS3File({ bucket, s3FileName, destinationFileName }) {
+  async function downloadS3File({ bucket, s3FileName, destinationFileName } = {}) {
     if (!bucket || !s3FileName || !destinationFileName) {
       rej(`downloadS3File() requires parameters properties`);
     }
@@ -34,7 +45,7 @@ function s3Wrapper() {
     await writeFileFromStream(readStream, destinationFileName);
   }
 
-  async function uploadS3Directory({ bucket, s3Location, sourceDirectory, options={} }) {
+  async function uploadS3Directory({ bucket, s3Location, sourceDirectory, options={} } = {}) {
     if (!bucket || (s3Location === undefined || s3Location === null) || !sourceDirectory) {
       throw new Error(`uploadS3Directory() requires parameters properties: bucket, s3Location, and sourceDirectory`);
     } else {
@@ -53,7 +64,7 @@ function s3Wrapper() {
     }
   }
 
-  async function uploadS3File({ bucket, s3FileName, sourceFileName, options={} }) {
+  async function uploadS3File({ bucket, s3FileName, sourceFileName, options={} } = {}) {
     if (!bucket || !s3FileName || !sourceFileName) {
       throw new Error(`uploadS3File() requires parameters properties: bucket, s3FileName, and sourceFileName`);
     } else {
@@ -63,7 +74,7 @@ function s3Wrapper() {
     }
   }
 
-  async function moveS3Directory({ sourceBucket, s3SourceDirectory, destinationBucket, s3DestinationDirectory, options={} }) {
+  async function moveS3Directory({ sourceBucket, s3SourceDirectory, destinationBucket, s3DestinationDirectory, options={} } = {}) {
     if (!sourceBucket || !s3SourceDirectory || !destinationBucket || (s3DestinationDirectory !== '' && !s3DestinationDirectory)) {
       throw new Error(`moveS3Directory() requires parameters: sourceBucket, s3SourceDirectory, destinationBucket, and s3DestinationDirectory`);
     } else {
@@ -96,7 +107,7 @@ function s3Wrapper() {
     }
   }
 
-  async function moveS3File({ sourceBucket, s3SourceFile, destinationBucket, s3DestinationFile, options={} }) {
+  async function moveS3File({ sourceBucket, s3SourceFile, destinationBucket, s3DestinationFile, options={} } = {}) {
     if (!sourceBucket || !s3SourceFile || !destinationBucket || !s3DestinationFile) {
       throw new Error(`moveS3File() requires parameters properties: sourceBucket, s3SourceFile, s3DestinationFile, and destinationBucket`);
     } else {

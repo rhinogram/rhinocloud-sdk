@@ -3,11 +3,18 @@ const { CloudFormation } = require('aws-sdk');
 const apiVersions = require('../../apiVersions.json');
 const paramTools = require('./toolbox/parameter.tools');
 
-function CloudFormationWrapper() {
-  const cf = new CloudFormation({ apiVersion: apiVersions.CloudFormation });
+function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
+  const cf = new CloudFormation({
+    apiVersion: apiVersions.CloudFormation,
+    accessKeyId,
+    secretAccessKey,
+    region
+  });
 
   // -------------------------- API functions ---------------------------- //
-  async function changeTerminationProtection({ stackName, enableTerminationProtection }) {
+  async function changeTerminationProtection({ stackName, enableTerminationProtection } = {}) {
+    if (!stackName || !enableTerminationProtection) {
+      throw new Error(`Must include enableTerminationProtection (string) and stackName (string) for CloudFormation`);
     const updateParams = {
       StackName: stackName,
       EnableTerminationProtection: enableTerminationProtection
@@ -16,9 +23,9 @@ function CloudFormationWrapper() {
     return resp;
   }
 
-  async function cloudForm({ templatePath, stackName, options={} }) {
+  async function cloudForm({ templatePath, stackName, options={} } = {}) {
     if (!templatePath || !stackName) {
-      throw new Error(`Must include templatePath (string) and stackName (string) for CloudFormation`);
+      throw new Error(`Must include stackName (string) and templatePath (string) for CloudFormation`);
     } else {
       const fileExists = fs.existsSync(templatePath);
       if (!fileExists) {
@@ -40,6 +47,8 @@ function CloudFormationWrapper() {
   }
 
   async function createStack(templatePath, stackName, parameters=[], enableTerminationProtection) {
+    if (!templatePath || !stackName) {
+      throw new Error(`Must include templatePath (string) and stackName (string) for CloudFormation`);
     const params = {
       StackName: stackName,
       TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
@@ -51,7 +60,10 @@ function CloudFormationWrapper() {
     return resp;
   }
 
-  async function deleteStack({ stackName, options={} }) {
+  async function deleteStack({ stackName, options={} } = {}) {
+    if (!stackName) {
+      throw new Error(`Must include stackName (string) for CloudFormation`)
+    }
     const deleteParams = { StackName: stackName };
     const resp = await cf.deleteStack(deleteParams).promise();
     const { waitToComplete, stdout } = paramTools.getOptions(options);
@@ -71,11 +83,17 @@ function CloudFormationWrapper() {
   }
 
   async function getStackOutputs(stackName='') {
+    if (!stackName) {
+      throw new Error(`Must include stackName (string) for CloudFormation`)
+    }
     const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
     return Stacks.pop();
   }
 
   async function stackExists (stackName='') {
+    if (!stackName) {
+      throw new Error(`Must include stackName (string) for CloudFormation`)
+    }
     try {
       const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
       return Stacks.length > 0;
@@ -90,6 +108,9 @@ function CloudFormationWrapper() {
   }
 
   async function updateStack(stackName, templatePath, parameters=[], stdout) {
+    if (!stackName || !templatePath) {
+      throw new Error(`Must include stackName (string) and templatesPath (string) for CloudFormation`)
+    }
     try {
       const updateParams = {
         StackName: stackName,
@@ -111,6 +132,9 @@ function CloudFormationWrapper() {
 
 
   async function waitOnStackToStabilize(stackName, stdout, retry=0) {
+    if (!stackName) {
+      throw new Error(`Must include stackName (string) for CloudFormation`)
+    }
     const describeParams = { StackName: stackName };
     const WAIT_INTERVAL = 5000;
     if (retry < 240) {
