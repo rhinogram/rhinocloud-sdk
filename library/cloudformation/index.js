@@ -15,6 +15,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   async function changeTerminationProtection({ stackName, enableTerminationProtection } = {}) {
     if (!stackName || !enableTerminationProtection) {
       throw new Error(`Must include enableTerminationProtection (string) and stackName (string) for CloudFormation`);
+    }
     const updateParams = {
       StackName: stackName,
       EnableTerminationProtection: enableTerminationProtection
@@ -49,6 +50,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   async function createStack(templatePath, stackName, parameters=[], enableTerminationProtection) {
     if (!templatePath || !stackName) {
       throw new Error(`Must include templatePath (string) and stackName (string) for CloudFormation`);
+    }
     const params = {
       StackName: stackName,
       TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
