@@ -82,22 +82,10 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         Bucket: sourceBucket,
         Prefix: s3SourceDirectory
       };
-      let keyObjects = [];
       const { Contents: keyObjects, IsTruncated } = await s3.listObjects(listParams).promise();
       if (IsTruncated) {
         const { Key: Marker } = keyObjects[keyObjects.length - 1];
-        async function fetchTruncatedS3Files({ keyObjects, params, Marker } = {}) {
-          const newParams = {...params, Marker };
-          let { Contents: newKeys, IsTruncated: newIsTruncated } = await s3.listObjects(newParams).promise();
-          keyObjects = [...keyObjects, newKeys];
-          if (newIsTruncated) {
-            const { Key: newMarker } = newKeys[newKeys.length - 1];
-            await fetchTruncatedS3Files({ keyObjects: newKeys, params: newParams, Marker: newMarker });
-          } else {
-           return keyObjects
-          }
-        }
-        keyObjects = [...keyObjects, await fetchTruncatedS3Files({ listParams, Marker })];
+        keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, Marker });
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
@@ -153,16 +141,14 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         Bucket: sourceBucket,
         Prefix: s3SourceDirectory
       };
-      let { Contents:keyObjects, IsTruncated } = await s3.listObjects(listParams).promise();
+      let { Contents: keyObjects, IsTruncated } = await s3.listObjects(listParams).promise();
       if (IsTruncated) {
-        console.log('ISTRUNCATED LENGTH', keyObjects.length)
         const { Key: Marker } = keyObjects[keyObjects.length - 1];
-        keyObjects = [ ...keyObjects,  ...await fetchTruncatedS3Files({ keyObjects, params: listParams, Marker })];
-        console.log('FINAL LENGTH', keyObjects.length, keyObjects);
+        keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, Marker });
       }
+      console.log('KEY OBJECT LENGTH', keyObjects.length)
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
-
       for (const key of mappedKeys) {
         const fileName = getFileNameFromS3Key(key);
         // this allows the use of directory or directory/
@@ -195,18 +181,16 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     }
   }
 
-  async function fetchTruncatedS3Files({ keyObjects, params, Marker} = {}) {
+  async function fetchTruncatedS3Files({ keyObjects, params, Marker, keyObjectsCumlative = [] } = {}) {
     const newParams = {...params, Marker };
-    let keys = keyObjects
-    keys = [...keys, ...keyObjects ];
-    console.log('KEYS ARR ITERATING', keys.length);
+    let keys = keyObjectsCumlative.length !== 0 ? keyObjectsCumlative : keyObjects;
     let { Contents: newKeys, IsTruncated } = await s3.listObjects(newParams).promise();
+    keys = [...keys, ...newKeys];
     if (IsTruncated) {
       const { Key: newMarker } = newKeys[newKeys.length - 1];
-      await fetchTruncatedS3Files({ keyObjects: newKeys, params: newParams, Marker: newMarker });
-    } else {
-     return [...keys, ...newKeys ];
+      return fetchTruncatedS3Files({ params: newParams, Marker: newMarker, keyObjectsCumlative: keys });
     }
+    return keys
   }
 
   // ------------------------ expose functions ------------------------- //
