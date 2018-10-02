@@ -146,7 +146,6 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         const { Key: Marker } = keyObjects[keyObjects.length - 1];
         keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, Marker });
       }
-      console.log('KEY OBJECT LENGTH', keyObjects.length)
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
       for (const key of mappedKeys) {
