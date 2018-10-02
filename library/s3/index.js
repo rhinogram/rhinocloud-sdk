@@ -135,7 +135,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
 
   async function copyS3Directory({ sourceBucket, s3SourceDirectory, destinationBucket, s3DestinationDirectory, options={} } = {}) {
     if (!sourceBucket || !s3SourceDirectory || !destinationBucket || (s3DestinationDirectory !== '' && !s3DestinationDirectory)) {
-      throw new Error(`moveS3Directory() requires parameters: sourceBucket, s3SourceDirectory, destinationBucket, and s3DestinationDirectory`);
+      throw new Error(`copyS3Directory() requires parameters: sourceBucket, s3SourceDirectory, destinationBucket, and s3DestinationDirectory`);
     } else {
       const listParams = {
         Bucket: sourceBucket,
@@ -171,7 +171,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
 
   async function copyS3File({ sourceBucket, s3SourceFile, destinationBucket, s3DestinationFile, options={} } = {}) {
     if (!sourceBucket || !s3SourceFile || !destinationBucket || !s3DestinationFile) {
-      throw new Error(`moveS3File() requires parameters properties: sourceBucket, s3SourceFile, s3DestinationFile, and destinationBucket`);
+      throw new Error(`copyS3File() requires parameters properties: sourceBucket, s3SourceFile, s3DestinationFile, and destinationBucket`);
     } else {
       const s3MoveOptions = getS3MoveParameters(sourceBucket, destinationBucket, s3SourceFile, s3DestinationFile, options);
       await s3.copyObject(s3MoveOptions).promise();
