@@ -1,11 +1,12 @@
 const { S3 } = require('aws-sdk');
 const apiVersions = require('../../apiVersions.json');
-const { getS3UploadParameters, getS3MoveParameters } = require('./toolbox/action.tools');
+const { getS3UploadParameters, getS3MoveParameters, getS3DeleteParameters } = require('./toolbox/action.tools');
 const {
   getFilePathsFromDirectory,
   writeFileFromStream,
   getFileNameFromS3Key
 } = require('./toolbox/file.tools');
+const { debugLog } = require('../helpers.js');
 
 function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
   const s3 = new S3({
@@ -29,7 +30,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
       Bucket: bucket,
       ...!!prefix && { Prefix: prefix },
     };
-    const { Contents } = await s3.listObjects(listParams).promise();
+    const { Contents } = await s3.listObjectsV2(listParams).promise();
     return Contents;
   }
 
@@ -55,11 +56,11 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         // this allows the use of directory or directory/
         const slash = s3Location[s3Location.length - 1] === '/' ? '' : '/';
         const fullS3FilePath = `${s3Location}${slash}${filePath}`;
-        const s3UploadOptions = getS3UploadParameters(bucket, fullS3FilePath, filePath, options);
+        const s3UploadOptions = getS3UploadParameters({ bucket, key: fullS3FilePath, filePathToUplodad: filePath, options });
         const waitInterval = options.throttleInterval || 100;
         await new Promise((res) => setTimeout(res, waitInterval));
         await s3.putObject(s3UploadOptions).promise();
-        console.log(`${filePath} to ${fullS3FilePath}`);
+        debugLog(`${filePath} to ${fullS3FilePath}`);
       }
     }
   }
@@ -68,7 +69,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     if (!bucket || !s3FileName || !sourceFileName) {
       throw new Error(`uploadS3File() requires parameters properties: bucket, s3FileName, and sourceFileName`);
     } else {
-      const s3UploadOptions = getS3UploadParameters(bucket, s3FileName, sourceFileName, options);
+      const s3UploadOptions = getS3UploadParameters({ bucket, key: s3FileName, filePathToUpload: sourceFileName, options });
       const resp = await s3.putObject(s3UploadOptions).promise();
       return resp;
     }
@@ -82,7 +83,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         Bucket: sourceBucket,
         Prefix: s3SourceDirectory
       };
-      const { Contents: keyObjects, IsTruncated } = await s3.listObjects(listParams).promise();
+      const { Contents: keyObjects, IsTruncated } = await s3.listObjectsV2(listParams).promise();
       if (IsTruncated) {
         const { Key: Marker } = keyObjects[keyObjects.length - 1];
         keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, Marker });
@@ -106,7 +107,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         const waitInterval = options.throttleInterval || 100;
         await new Promise((res) => setTimeout(res, waitInterval));
         await moveS3File(moveParams);
-        console.log(`s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
+        debugLog(`moving s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
       }
     }
   }
@@ -115,7 +116,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     if (!sourceBucket || !s3SourceFile || !destinationBucket || !s3DestinationFile) {
       throw new Error(`moveS3File() requires parameters properties: sourceBucket, s3SourceFile, s3DestinationFile, and destinationBucket`);
     } else {
-      const s3MoveOptions = getS3MoveParameters(sourceBucket, destinationBucket, s3SourceFile, s3DestinationFile, options);
+      const s3MoveOptions = getS3MoveParameters({ sourceBucket, destinationBucket, sourceKey: s3SourceFile, destinationKey: s3DestinationFile, options });
       const resp = await s3.copyObject(s3MoveOptions).promise();
 
       // check for this to ensure the promise resolves before deleting
@@ -141,10 +142,9 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         Bucket: sourceBucket,
         Prefix: s3SourceDirectory
       };
-      let { Contents: keyObjects, IsTruncated } = await s3.listObjects(listParams).promise();
+      let { Contents: keyObjects, IsTruncated, NextContinuationToken } = await s3.listObjectsV2(listParams).promise();
       if (IsTruncated) {
-        const { Key: Marker } = keyObjects[keyObjects.length - 1];
-        keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, Marker });
+        keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, NextContinuationToken });
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
@@ -164,7 +164,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         const waitInterval = options.throttleInterval || 100;
         await new Promise((res) => setTimeout(res, waitInterval));
         await copyS3File(copyParams);
-        console.log(`s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
+        debugLog(`copying s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
       }
     }
   }
@@ -173,21 +173,72 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     if (!sourceBucket || !s3SourceFile || !destinationBucket || !s3DestinationFile) {
       throw new Error(`copyS3File() requires parameters properties: sourceBucket, s3SourceFile, s3DestinationFile, and destinationBucket`);
     } else {
-      const s3MoveOptions = getS3MoveParameters(sourceBucket, destinationBucket, s3SourceFile, s3DestinationFile, options);
+      const s3MoveOptions = getS3MoveParameters({ sourceBucket, destinationBucket, sourceKey: s3SourceFile, destinationKey: s3DestinationFile, options });
       await s3.copyObject(s3MoveOptions).promise();
       const newFileData = { newLocation: `s3://${destinationBucket}/${s3DestinationFile}` };
       return newFileData;
     }
   }
 
-  async function fetchTruncatedS3Files({ keyObjects, params, Marker, keyObjectsCumlative = [] } = {}) {
-    const newParams = {...params, Marker };
+  async function deleteS3Files({ sourceS3Bucket, sourceS3Directory, options = {} } = {}) {
+    if (!sourceBucket || !s3SourceFile) {
+      throw new Error('deleteS3Files() requires parameter properties: sourceBucket, s3SourceFile');
+    } else {
+      const listVersionParams = {
+        Bucket: sourceBucket,
+        Prefix: sourceS3Directory,
+      };
+      let { Versions: versionArrays, VersionIdMarker, NextKeyMarker, IsTruncated } = await s3.listVersions(listVersionParams).promise();
+      if (IsTruncated) {
+        versionArrays = await fetchTruncatedVersionS3Files({
+          params: listVersionParams,
+          KeyMarker: NextKeyMarker,
+          VersionMarker: VersionIdMarker,
+          keyObjectsCumlative: keys
+        });
+      }
+      for (const versionArray in versionArrays) {
+        const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
+        const mappedFiles = versionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
+        const deleteParams =  getS3DeleteParameters({ sourceS3Bucket, sourceS3Files: mappedFiles, options })
+        await s3.deleteObjects(deleteParams);
+      }
+    }
+  }
+
+
+  async function deleteS3File({ sourceS3Bucket, sourceS3File, versionId = undefined, options = {}} ={}) {
+    if (!sourceBucket || !s3SourceFile) {
+      throw new Error('deleteFile() requires parameter properties: ')
+    }
+    const s3DeleteOptions = getS3DeleteParameters({ sourceS3Bucket, sourceS3File, sourceS3VersionId: versionId, options });
+    await s3.deleteObject(s3DeleteOptions);
+    debugLog(`deleting s3://${sourceBucket}/${s3SourceFile}`);
+  }
+
+  async function fetchTruncatedS3Files({ keyObjects, params, NextContinuationToken, keyObjectsCumlative = [] } = {}) {
+    const newParams = {...params, ContinuationToken: NextContinuationToken };
     let keys = keyObjectsCumlative.length !== 0 ? keyObjectsCumlative : keyObjects;
-    let { Contents: newKeys, IsTruncated } = await s3.listObjects(newParams).promise();
+    let { Contents: newKeys, IsTruncated, NextContinuationToken } = await s3.listObjectsV2(newParams).promise();
     keys = [...keys, ...newKeys];
     if (IsTruncated) {
-      const { Key: newMarker } = newKeys[newKeys.length - 1];
-      return fetchTruncatedS3Files({ params: newParams, Marker: newMarker, keyObjectsCumlative: keys });
+      return fetchTruncatedS3Files({ params: newParams, NextContinuationToken, keyObjectsCumlative: keys });
+    }
+    return keys
+  }
+
+  async function fetchTruncatedVersionS3Files({ keyObjects, params, KeyMarker, VersionMarker, keyObjectsCumlative = [] } = {}) {
+    const newParams = {...params, ContinuationToken: NextContinuationToken };
+    let keys = keyObjectsCumlative.length !== 0 ? keyObjectsCumlative : keyObjects;
+    let { Versions: newKeyArray, IsTruncated, NextKeyMarker, VersionIdMarker } = await s3.listObjectVersions(newParams).promise();
+    keys = [...keys, newKeyArray ];
+    if (IsTruncated) {
+      return fetchTruncatedVersionS3Files({
+        params: newParams,
+        KeyMarker: NextKeyMarker,
+        VersionMarker: VersionIdMarker,
+        keyObjectsCumlative: keys
+      });
     }
     return keys
   }
@@ -202,6 +253,8 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
   this.moveS3Directory = moveS3Directory;
   this.copyS3Directory = copyS3Directory;
   this.copyS3File = copyS3File;
+  this.deleteS3Files = deleteS3Files;
+  this.deleteS3File = deleteS3File;
 }
 
 // ------------------------------- export ----------------------------- //

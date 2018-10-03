@@ -17,10 +17,14 @@ const rhinocloud = new Rhinocloud({
   });
 ```
 
-* OR You can use AWS Environment keys before instantiating a new instance:
+* OR You can use process.env keys before instantiating a new instance:
   * `AWS_ACCESS_KEY_ID`
   * `AWS_SECRET_ACCESS_KEY`
   * `AWS_REGION`
+
+
+* Setting `process.env.DEBUG === true` will enable debug mode.
+
 
 * Example using `dotenv` library with `rhinocloud-sdk`: https://www.npmjs.com/package/dotenv
 ```bash

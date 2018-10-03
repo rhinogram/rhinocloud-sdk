@@ -1,6 +1,6 @@
 const { convertFilePathToBuffer } = require('./file.tools');
 
-module.exports.getS3UploadParameters = (bucket, key, filePathToUpload, options={}) => {
+module.exports.getS3UploadParameters = ({ bucket, key, filePathToUpload, options={} } ={}) => {
   if (!bucket || !key) {
     throw new Error(`S3 Upload options must include bucket and key`);
   } else {
@@ -34,7 +34,7 @@ module.exports.getS3UploadParameters = (bucket, key, filePathToUpload, options={
   }
 };
 
-module.exports.getS3MoveParameters = (sourceBucket, destinationBucket, sourceKey, destinationKey, options={}) => {
+module.exports.getS3MoveParameters = ({ sourceBucket, destinationBucket, sourceKey, destinationKey, options={}} = {}) => {
   if (!sourceBucket || !destinationBucket || !sourceKey || !destinationKey) {
     throw new Error(`S3 Move parameters requires sourceBucket, destinationBucket, sourceKey, and destinationKey`);
   } else {
@@ -72,3 +72,18 @@ module.exports.getS3MoveParameters = (sourceBucket, destinationBucket, sourceKey
     };
   }
 };
+
+module.exports.getS3DeleteParameters = ({ sourceS3Bucket, sourceS3Files, sourceS3File, sourceS3VersionId, options={}} = {}) => {
+  if(!sourceS3Bucket  && (!sourceS3File || !sourceS3Files)) {
+    throw new Error(`S3 Bucket parmeters requires sourceBucket and sourceS3File or sourceS3Directory`)
+  } else {
+    return {
+      Bucket: sourceBucket,
+      ...sourceS3Files && { Options: sourceS3Files },
+      ...sourceS3File && { Key: sourceS3File },
+      ...sourceS3Version && { VersionId: sourceS3VersionId },
+      ...options.MFA && { MFA: options.MFA },
+      ...options.requestPayer && { RequestPayer: options.requestPayer },
+    }
+  }
+}
