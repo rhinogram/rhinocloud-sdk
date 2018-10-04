@@ -180,38 +180,46 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     }
   }
 
-  async function deleteS3Files({ sourceS3Bucket, sourceS3Directory, options = {} } = {}) {
-    if (!sourceBucket || !s3SourceFile) {
-      throw new Error('deleteS3Files() requires parameter properties: sourceBucket, s3SourceFile');
+  async function deleteS3Files({ sourceBucket, sourceS3Directory, options = {} } = {}) {
+    if (!sourceBucket || !sourceS3Directory) {
+      throw new Error('deleteS3Files() requires parameter properties: sourceBucket, sourceS3Directory');
     } else {
       const listVersionParams = {
         Bucket: sourceBucket,
         Prefix: sourceS3Directory,
       };
-      let { Versions: versionArrays, VersionIdMarker, NextKeyMarker, IsTruncated } = await s3.listVersions(listVersionParams).promise();
+      let { Versions: keyVersionArray, IsTruncated, NextKeyMarker, VersionIdMarker } = await s3.listObjectVersions(listVersionParams).promise();
       if (IsTruncated) {
-        versionArrays = await fetchTruncatedVersionS3Files({
+        const keyVersionArrays = await fetchTruncatedVersionS3Files({
           params: listVersionParams,
-          KeyMarker: NextKeyMarker,
-          VersionMarker: VersionIdMarker,
-          keyObjectsCumlative: keys
+          keyObjects: keyVersionArray,
+          NextKeyMarker,
+          VersionIdMarker,
         });
+        let counter = 0;
+        for (const keyVersionArray in keyVersionArrays) {
+          const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
+          const keyVersionMap = keyVersionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
+          const deleteParams =  getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options })
+          counter += keyVersionArray.length;
+          await s3.deleteObjects(deleteParams);
+        }
+        debugLog(`deleted ${counter} files from S3 Bucket: ${sourceBucket}`);
+        return undefined;
       }
-      for (const versionArray in versionArrays) {
-        const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
-        const mappedFiles = versionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
-        const deleteParams =  getS3DeleteParameters({ sourceS3Bucket, sourceS3Files: mappedFiles, options })
-        await s3.deleteObjects(deleteParams);
-      }
+      const keyVersionMap = keyVersionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
+      await s3.deleteObjects(keyVersionMap);
+      console.log(`deleted ${keyVersionArray.length} files from S3 Bucket: ${sourceBucket}`);
+      return undefined;
     }
   }
 
 
-  async function deleteS3File({ sourceS3Bucket, sourceS3File, versionId = undefined, options = {}} ={}) {
+  async function deleteS3File({ sourceBucket, s3SourceFile, versionId = undefined, options = {}} ={}) {
     if (!sourceBucket || !s3SourceFile) {
       throw new Error('deleteFile() requires parameter properties: ')
     }
-    const s3DeleteOptions = getS3DeleteParameters({ sourceS3Bucket, sourceS3File, sourceS3VersionId: versionId, options });
+    const s3DeleteOptions = getS3DeleteParameters({ sourceBucket, s3SourceFile, sourceS3VersionId: versionId, options });
     await s3.deleteObject(s3DeleteOptions);
     debugLog(`deleting s3://${sourceBucket}/${s3SourceFile}`);
   }
@@ -219,28 +227,28 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
   async function fetchTruncatedS3Files({ keyObjects, params, NextContinuationToken, keyObjectsCumlative = [] } = {}) {
     const newParams = {...params, ContinuationToken: NextContinuationToken };
     let keys = keyObjectsCumlative.length !== 0 ? keyObjectsCumlative : keyObjects;
-    let { Contents: newKeys, IsTruncated, NextContinuationToken } = await s3.listObjectsV2(newParams).promise();
+    let { Contents: newKeys, IsTruncated, NextContinuationToken: newToken } = await s3.listObjectsV2(newParams).promise();
     keys = [...keys, ...newKeys];
     if (IsTruncated) {
-      return fetchTruncatedS3Files({ params: newParams, NextContinuationToken, keyObjectsCumlative: keys });
+      return fetchTruncatedS3Files({ params: newParams, NextContinuationToken: newToken, keyObjectsCumlative: keys });
     }
-    return keys
+    return keys;
   }
 
-  async function fetchTruncatedVersionS3Files({ keyObjects, params, KeyMarker, VersionMarker, keyObjectsCumlative = [] } = {}) {
-    const newParams = {...params, ContinuationToken: NextContinuationToken };
+  async function fetchTruncatedVersionS3Files({ keyObjects, params, NextKeyMarker, VersionIdMarker, keyObjectsCumlative = [] } = {}) {
+    const newParams = {...params, KeyMarker: NextKeyMarker, VersionIdMarker };
     let keys = keyObjectsCumlative.length !== 0 ? keyObjectsCumlative : keyObjects;
-    let { Versions: newKeyArray, IsTruncated, NextKeyMarker, VersionIdMarker } = await s3.listObjectVersions(newParams).promise();
-    keys = [...keys, newKeyArray ];
+    let { Versions: newKeyArray, IsTruncated, NextKeyMarker: newKeyMarker, VersionIdMarker: newVersionIdMarker } = await s3.listObjectVersions(newParams).promise();
+    keyVersionArrays = [...keys, newKeyArray ];
     if (IsTruncated) {
       return fetchTruncatedVersionS3Files({
         params: newParams,
-        KeyMarker: NextKeyMarker,
-        VersionMarker: VersionIdMarker,
-        keyObjectsCumlative: keys
+        NextKeyMarker: newKeyMarker,
+        VersionIdMarker: newVersionIdMarker,
+        keyObjectsCumlative: keyVersionArrays,
       });
     }
-    return keys
+    return keyVersionArrays;
   }
 
   // ------------------------ expose functions ------------------------- //

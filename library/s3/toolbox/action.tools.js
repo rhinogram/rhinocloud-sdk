@@ -73,7 +73,7 @@ module.exports.getS3MoveParameters = ({ sourceBucket, destinationBucket, sourceK
   }
 };
 
-module.exports.getS3DeleteParameters = ({ sourceS3Bucket, sourceS3Files, sourceS3File, sourceS3VersionId, options={}} = {}) => {
+module.exports.getS3DeleteParameters = ({ sourceBucket, sourceS3Files, sourceS3File, sourceS3VersionId, options={}} = {}) => {
   if(!sourceS3Bucket  && (!sourceS3File || !sourceS3Files)) {
     throw new Error(`S3 Bucket parmeters requires sourceBucket and sourceS3File or sourceS3Directory`)
   } else {

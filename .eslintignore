@@ -1,0 +1,15 @@
+# node_modules in the project root are ignored by default
+
+lib/
+src/*.env
+src/db/migrations/*
+src/db/seeds/*
+src/db/config/*
+src/sandbox/*
+src/translate/*
+src/environment.js
+src/e2eEnvironment.js
+src/tests/helpers/rewireDemo.js
+test/*
+deploy
+rhinodeploy
