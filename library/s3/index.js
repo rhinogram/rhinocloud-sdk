@@ -194,10 +194,11 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
           params: listVersionParams,
           keyObjects: keyVersionArray,
           NextKeyMarker,
-          VersionIdMarker,
+          ...VersionIdMarker && { VersionIdMarker },
         });
         let counter = 0;
         for (const keyVersionArray in keyVersionArrays) {
+          console.log('KEY VERSION ARRAYS', keyVersionArrays, 'ONE ARRAY', keyVersionArray.length);
           const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
           const keyVersionMap = keyVersionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
           const deleteParams =  getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options })
@@ -237,14 +238,14 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
 
   async function fetchTruncatedVersionS3Files({ keyObjects, params, NextKeyMarker, VersionIdMarker, keyObjectsCumlative = [] } = {}) {
     const newParams = {...params, KeyMarker: NextKeyMarker, VersionIdMarker };
-    let keys = keyObjectsCumlative.length !== 0 ? keyObjectsCumlative : keyObjects;
+    let keyVersionArrays = [ keyObjectsCumlative.length !== 0 ? keyObjectsCumlative : keyObjects ];
     let { Versions: newKeyArray, IsTruncated, NextKeyMarker: newKeyMarker, VersionIdMarker: newVersionIdMarker } = await s3.listObjectVersions(newParams).promise();
-    keyVersionArrays = [...keys, newKeyArray ];
+    keyVersionArrays = [...keyVersionArrays, newKeyArray];
     if (IsTruncated) {
       return fetchTruncatedVersionS3Files({
         params: newParams,
         NextKeyMarker: newKeyMarker,
-        VersionIdMarker: newVersionIdMarker,
+        ...VersionIdMarker && { VersionIdMarker: newVersionIdMarker },
         keyObjectsCumlative: keyVersionArrays,
       });
     }
