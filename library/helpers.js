@@ -4,4 +4,4 @@ module.exports.debugLog = (...args) => {
     console.log(...args);
   }
   return undefined;
-}
+};

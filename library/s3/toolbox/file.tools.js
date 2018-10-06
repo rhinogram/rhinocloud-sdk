@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-module.exports.convertFilePathToBuffer = (filePath='') => {
+module.exports.convertFilePathToBuffer = (filePath = '') => {
   const exists = fs.existsSync(filePath);
 
   if (!exists) {
@@ -11,28 +11,27 @@ module.exports.convertFilePathToBuffer = (filePath='') => {
 };
 
 
-module.exports.getFileNameFromS3Key = (key='') => {
+module.exports.getFileNameFromS3Key = (key = '') => {
   const splitArr = key.split('/');
   const lastIdx = splitArr.length - 1;
   return (splitArr.length > 0) ? splitArr[lastIdx] : key;
 };
 
 
-module.exports.getFilePathsFromDirectory = (directoryPath='', excludeFiles=[]) => {
+module.exports.getFilePathsFromDirectory = (directoryPath = '', excludeFiles = []) => {
   const readRes = fs.readdirSync(directoryPath);
   const files = readRes.map((f) => {
     const fullPath = `${directoryPath}/${f}`;
     const isDir = fs.lstatSync(fullPath).isDirectory();
     if (isDir) {
-      return getFilePathsFromDirectory(`${fullPath}`);
-    } else {
-      return fullPath;
+      return this.getFilePathsFromDirectory(`${fullPath}`);
     }
+    return fullPath;
   });
 
-  const filtered = files.filter((f) => !excludeFiles.includes(f));
+  const filtered = files.filter((f) => { return !excludeFiles.includes(f); });
   // flatten the array of arrays
-  return [].concat.apply([], filtered);
+  return [].concat.apply([], ...filtered);
 };
 
 
