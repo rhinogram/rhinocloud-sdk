@@ -224,21 +224,21 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         });
         let counter = 0;
         for (const keyVersionArray of keyVersionArrays) {
-          console.log('IN LOOP', Array.isArray(keyVersionArray), keyVersionArray);
-          // console.log('KEY VERSION ARRAYS', JSON.stringify(keyVersionArrays, null, 2), 'ONE ARRAY', keyVersionArray.length);
           const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
           const keyVersionMap = keyVersionArray.map((k) => { return { Key: k.Key, VersionId: k.VersionId }; }).filter((k) => { return !excludedFiles.includes(k); });
           const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
           counter += keyVersionArray.length;
-          await s3.deleteObjects(deleteParams);
+          console.log('DELETE PARAMS', deleteParams);
+          await s3.deleteObjects(deleteParams).promise();
         }
         debugLog(`deleted ${counter} files from S3 Bucket: ${sourceBucket}`);
         return undefined;
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const keyVersionMap = keyVersionObjects.map((k) => { return { Key: k.Key, VersionId: k.VersionId }; }).filter((k) => { return !excludedFiles.includes(k); });
-      await s3.deleteObjects(keyVersionMap);
-      console.log(`deleted ${keyVersionObjects.length} files from S3 Bucket: ${sourceBucket}`);
+      const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
+      await s3.deleteObjects(deleteParams).promise();
+      debugLog(`deleted ${keyVersionObjects.length} files from S3 Bucket: ${sourceBucket}`);
       return undefined;
     }
   }
@@ -253,7 +253,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     const s3DeleteOptions = getS3DeleteParameters({
       sourceBucket, s3SourceFile, sourceS3VersionId: versionId, options,
     });
-    await s3.deleteObject(s3DeleteOptions);
+    await s3.deleteObject(s3DeleteOptions).promise();
     debugLog(`deleting s3://${sourceBucket}/${s3SourceFile}`);
   }
 
@@ -287,7 +287,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         keyObjectsCumulative: keyVersionArrays,
       });
     }
-    console.log('FINAL LENGTH', keyVersionArrays.length);
+    debugLog('FINAL LENGTH', keyVersionArrays.length);
     return keyVersionArrays;
   }
 
