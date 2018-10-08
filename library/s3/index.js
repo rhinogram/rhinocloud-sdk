@@ -95,10 +95,9 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
       };
       const objectResponse = await s3.listObjectsV2(listParams).promise();
       let { Contents: keyObjects } = objectResponse;
-      const { IsTruncated } = objectResponse;
+      const { IsTruncated, NextContinuationToken } = objectResponse;
       if (IsTruncated) {
-        const { Key: Marker } = keyObjects[keyObjects.length - 1];
-        keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, Marker });
+        keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, NextContinuationToken });
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => { return (k.Key); }).filter((k) => { return !excludedFiles.includes(k); });
