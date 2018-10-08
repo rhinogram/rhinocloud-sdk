@@ -203,7 +203,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     }
   }
 
-  async function deleteS3Files({ sourceBucket, sourceS3Directory, options = {} } = {}) {
+  async function deleteS3Directory({ sourceBucket, sourceS3Directory, options = {} } = {}) {
     if (!sourceBucket || !sourceS3Directory) {
       throw new Error('deleteS3Files() requires parameter properties: sourceBucket, sourceS3Directory');
     } else {
@@ -302,7 +302,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
   this.moveS3Directory = moveS3Directory;
   this.copyS3Directory = copyS3Directory;
   this.copyS3File = copyS3File;
-  this.deleteS3Files = deleteS3Files;
+  this.deleteS3Directory = deleteS3Directory;
   this.deleteS3File = deleteS3File;
 }
 
