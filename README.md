@@ -197,7 +197,7 @@ downloadFile();
 ```
 
 ### moveS3File
-* `moveS3File(parameters): <Promise> Copy s3 file to another location and delete file from old location
+* `moveS3File(parameters)`: <Promise> Copy s3 file to another location and delete file from old location
 #### parameters properties
   * `sourceBucket` (string) `required`: Name of the S3 bucket where the file originated.
   * `s3SourceFile` (string) `required`: S3 Key to move.
@@ -312,9 +312,9 @@ await moveSomeFiles();
 * `moveS3Directory(parameters)`: <Promise> Recursively copy directory/file from one S3 location to another.
 #### parameters properties
   * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
-  * `s3SourceDirectory` (string) `required`: Directory in S3 to move.
-  * `destinationBucket` (string) `required`: Name of the s3 bucket in which to move the directory.
-  * `s3DestinationDirectory` (string) `required`: Name of the directory after it is moved (can also be an empty string or `/` to move the directory as is).
+  * `s3SourceDirectory` (string) `required`: Directory in S3 to copy.
+  * `destinationBucket` (string) `required`: Name of the s3 bucket in which to copy the directory.
+  * `s3DestinationDirectory` (string) `required`: Name of the directory after it is copied (can also be an empty string or `/` to copy the directory as is).
   * `options` (object) `optional`:
     * `acl` (string)
     * `cacheControl` (string)
@@ -351,7 +351,7 @@ await moveSomeFiles();
 ```bash
 # this copies all files in s3://my-bucket/files, except
 # s3://my-bucket/files/coCopyThis.txt to s3://my-bucket/movedFiles/
-async function moveSomeFiles() {
+async function copySomeFiles() {
   const options = {
     exclude: ['files/noCopyThis.txt']
   };
@@ -366,6 +366,60 @@ async function moveSomeFiles() {
 }
 
 await copySomeFiles();
+```
+
+
+### copyS3File
+* `copyS3File(parameters)`: <Promise> Copy s3 File to another location.
+#### parameters properties
+  * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
+  * `s3SourceFile` (string) `required`: S3 key to copy.
+  * `destinationBucket` (string) `required`: Name of the s3 bucket in which the file should be copied to.
+  * `s3DestinationFile` (string) `required`: Resulting S3 key name of the new file   * `options` (object) `optional`:
+    * `acl` (string)
+    * `cacheControl` (string)
+    * `contentDisposition` (string)
+    * `contentEncoding` (string)
+    * `contentLanguage` (string)
+    * `contentLength` (number)
+    * `contentMd5` (string)
+    * `contentType` (string)
+    * `copySourceIfMatch` (string)
+    * `copySourceIfModifiedSince` (string)
+    * `copySourceIfNoneMatch` (string)
+    * `copySourceIfUnmodifiedSince` (string)
+    * `copySourceSSECustomerAlgorithm` (string)
+    * `copySourceSSECustomerKeyMd5` (string)
+    * `expires` (timestamp)
+    * `grantFullControl` (string)
+    * `grantRead` (string)
+    * `grantReadAcp` (string)
+    * `grantWriteAcp` (string)
+    * `metadata` (object)
+    * `sseCustomerAlgorithm` (string)
+    * `sseCustomerKey` (buffer || string)
+    * `sseCustomemrKeyMd5` (string)
+    * `sseKmsKeyId` (string)
+    * `serverSideEncryption` (string)
+    * `storageClass` (string)
+    * `tagging` (string)
+    * `websiteRedirectionLocation` (string)
+    * `storageClass` (string)
+    * `exclude` (array of strings)
+    * `throttleInterval` (number): Ms of delay in between S3 requests for each file
+#### Example
+```bash
+  # this copies s3://bucketA/files/someFile.txt to s3://bucketB/newlocation/newName.txt
+async function copyMyFile() {
+  await rhinocloud.s3.moveS3File({
+    sourceBucket: 'bucketA',
+    s3SourceFile: 'files/someFile.txt',
+    destinationBucket: 'bucketB',
+    s3DestinationFile: 'newlocation/newName.txt'
+  });
+}
+
+await copyMyFile();
 ```
 
 ### deleteS3Directory
@@ -396,6 +450,27 @@ async function deleteSomeFiles() {
 await deleteSomeFiles();
 ```
 
+###deleteS3File
+* `deleteS3File(parameters)`: <Promise> Delete a file from a S3 location
+#### parameters properties
+  * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
+  * `s3SourceFile` (string) `required`: S3 key to delete.
+  * `versionId` (string) : Version ID of the file if this is a versioned bucket.
+  * `options` (object) `optional`:
+    * `MFA` (string)
+    * `RequestPayer` (string)
+    * `exclude` (array of strings)
+#### Example
+```bash
+  # this deletes s3://bucketA/files/someFile.txt
+  async function deleteAFile() {
+    await rhinocloud.s3.moveS3File({
+      sourceBucket: 'bucketA',
+      s3SourceFile: 'files/someFile.txt',
+    });
+  }
+  await deleteAFile();
+```
 
 ### uploadS3Directory
 * `uploadS3Directory(parameters)`: <Promise> Upload a folder/directory to an S3 bucket
