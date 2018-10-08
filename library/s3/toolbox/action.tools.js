@@ -85,13 +85,15 @@ module.exports.getS3DeleteParameters = ({
   } else {
     return {
       Bucket: sourceBucket,
-      Delete: {
-        ...sourceS3Files && { Objects: sourceS3Files },
+      ...sourceS3Files && {
+        Delete: {
+          Objects: sourceS3Files,
+        },
+        ...sourceS3File && { Key: sourceS3File },
+        ...sourceS3VersionId && { VersionId: sourceS3VersionId },
+        ...options.MFA && { MFA: options.MFA },
+        ...options.requestPayer && { RequestPayer: options.requestPayer },
       },
-      ...sourceS3File && { Key: sourceS3File },
-      ...sourceS3VersionId && { VersionId: sourceS3VersionId },
-      ...options.MFA && { MFA: options.MFA },
-      ...options.requestPayer && { RequestPayer: options.requestPayer },
     };
   }
 };

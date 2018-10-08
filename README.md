@@ -249,7 +249,7 @@ async function moveMyFile() {
 ```
 
 ### moveS3Directory
-* `moveS3Directory(parameters)`: <Promise> Recursively copy directory/file from one S3 location to another.
+* `moveS3Directory(parameters)`: <Promise> Recursively move directory/file from one S3 location to another.
 #### parameters properties
   * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
   * `s3SourceDirectory` (string) `required`: Directory in S3 to move.
@@ -306,6 +306,94 @@ async function moveSomeFiles() {
 }
 
 await moveSomeFiles();
+```
+
+### copyS3Directory
+* `moveS3Directory(parameters)`: <Promise> Recursively copy directory/file from one S3 location to another.
+#### parameters properties
+  * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
+  * `s3SourceDirectory` (string) `required`: Directory in S3 to move.
+  * `destinationBucket` (string) `required`: Name of the s3 bucket in which to move the directory.
+  * `s3DestinationDirectory` (string) `required`: Name of the directory after it is moved (can also be an empty string or `/` to move the directory as is).
+  * `options` (object) `optional`:
+    * `acl` (string)
+    * `cacheControl` (string)
+    * `contentDisposition` (string)
+    * `contentEncoding` (string)
+    * `contentLanguage` (string)
+    * `contentLength` (number)
+    * `contentMd5` (string)
+    * `contentType` (string)
+    * `copySourceIfMatch` (string)
+    * `copySourceIfModifiedSince` (string)
+    * `copySourceIfNoneMatch` (string)
+    * `copySourceIfUnmodifiedSince` (string)
+    * `copySourceSSECustomerAlgorithm` (string)
+    * `copySourceSSECustomerKeyMd5` (string)
+    * `expires` (timestamp)
+    * `grantFullControl` (string)
+    * `grantRead` (string)
+    * `grantReadAcp` (string)
+    * `grantWriteAcp` (string)
+    * `metadata` (object)
+    * `sseCustomerAlgorithm` (string)
+    * `sseCustomerKey` (buffer || string)
+    * `sseCustomemrKeyMd5` (string)
+    * `sseKmsKeyId` (string)
+    * `serverSideEncryption` (string)
+    * `storageClass` (string)
+    * `tagging` (string)
+    * `websiteRedirectionLocation` (string)
+    * `storageClass` (string)
+    * `exclude` (array of strings)
+    * `throttleInterval` (number): Ms of delay in between S3 requests for each file
+#### Example
+```bash
+# this moves all files in s3://my-bucket/files, except
+# s3://my-bucket/files/noMoveThis.txt to s3://my-bucket/movedFiles/
+async function moveSomeFiles() {
+  const options = {
+    exclude: ['files/noCopyThis.txt']
+  };
+
+  await rhinocloud.s3.copyS3Directory({
+    sourceBucket: 'my-bucket',
+    s3SourceDirectory: 'files',
+    destinationbucket: 'my-bucket',
+    s3DestinationDirectory: 'copiedFiles/',
+    options
+  });
+}
+
+await copySomeFiles();
+```
+
+### deleteS3Directory
+* `moveS3Directory(parameters)`: <Promise> Recursively delete directory/file from a S3 location.
+#### parameters properties
+  * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
+  * `s3SourceDirectory` (string) `required`: Directory in S3 to move.
+  * `options` (object) `optional`:
+    * `MFA` (string)
+    * `RequestPayer` (string)
+    * `exclude` (array of strings)
+#### Example
+```bash
+# this moves all files in s3://my-bucket/files, except
+# s3://my-bucket/files/noMoveThis.txt to s3://my-bucket/movedFiles/
+async function deleteSomeFiles() {
+  const options = {
+    exclude: ['files/noCopyThis.txt']
+  };
+
+  await rhinocloud.s3.deleteS3Directory({
+    sourceBucket: 'my-bucket',
+    s3SourceDirectory: 'files',
+    options
+  });
+}
+
+await copySomeFiles();
 ```
 
 

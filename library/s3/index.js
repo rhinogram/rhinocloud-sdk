@@ -228,7 +228,11 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
           const keyVersionMap = keyVersionArray.map((k) => { return { Key: k.Key, VersionId: k.VersionId }; }).filter((k) => { return !excludedFiles.includes(k); });
           const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
           counter += keyVersionArray.length;
-          await s3.deleteObjects(deleteParams).promise();
+          try {
+            await s3.deleteObjects(deleteParams).promise();
+          } catch (e) {
+            console.log(deleteParams);
+          }
         }
         debugLog(`deleted ${counter} files from S3 Bucket: ${sourceBucket}`);
         return undefined;
