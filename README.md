@@ -349,7 +349,7 @@ await moveSomeFiles();
     * `throttleInterval` (number): Ms of delay in between S3 requests for each file
 #### Example
 ```bash
-# this moves all files in s3://my-bucket/files, except
+# this copies all files in s3://my-bucket/files, except
 # s3://my-bucket/files/coCopyThis.txt to s3://my-bucket/movedFiles/
 async function moveSomeFiles() {
   const options = {
