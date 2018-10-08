@@ -350,7 +350,7 @@ await moveSomeFiles();
 #### Example
 ```bash
 # this moves all files in s3://my-bucket/files, except
-# s3://my-bucket/files/noMoveThis.txt to s3://my-bucket/movedFiles/
+# s3://my-bucket/files/coCopyThis.txt to s3://my-bucket/movedFiles/
 async function moveSomeFiles() {
   const options = {
     exclude: ['files/noCopyThis.txt']
@@ -379,11 +379,11 @@ await copySomeFiles();
     * `exclude` (array of strings)
 #### Example
 ```bash
-# this moves all files in s3://my-bucket/files, except
-# s3://my-bucket/files/noMoveThis.txt to s3://my-bucket/movedFiles/
+# this deletes all files in s3://my-bucket/files, except
+# s3://my-bucket/files/noDeleteThis.txt to s3://my-bucket/movedFiles/
 async function deleteSomeFiles() {
   const options = {
-    exclude: ['files/noCopyThis.txt']
+    exclude: ['files/noDeleteThis.txt']
   };
 
   await rhinocloud.s3.deleteS3Directory({
@@ -393,7 +393,7 @@ async function deleteSomeFiles() {
   });
 }
 
-await copySomeFiles();
+await deleteSomeFiles();
 ```
 
 
