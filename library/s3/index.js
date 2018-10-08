@@ -215,6 +215,9 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
       const {
         Versions: keyVersionObjects, IsTruncated, NextKeyMarker, VersionIdMarker,
       } = await s3.listObjectVersions(listVersionParams).promise();
+      if (keyVersionObjects.length === 0) {
+        throw new Error(`No data found in ${sourceBucket}/${sourceS3Directory}`);
+      }
       if (IsTruncated) {
         const keyVersionArrays = await fetchTruncatedVersionS3Files({
           params: listVersionParams,
@@ -223,16 +226,13 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
           ...VersionIdMarker && { VersionIdMarker },
         });
         let counter = 0;
+
         for (const keyVersionArray of keyVersionArrays) {
           const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
           const keyVersionMap = keyVersionArray.map((k) => { return { Key: k.Key, VersionId: k.VersionId }; }).filter((k) => { return !excludedFiles.includes(k); });
           const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
           counter += keyVersionArray.length;
-          try {
-            await s3.deleteObjects(deleteParams).promise();
-          } catch (e) {
-            console.log(deleteParams);
-          }
+          await s3.deleteObjects(deleteParams).promise();
         }
         debugLog(`deleted ${counter} files from S3 Bucket: ${sourceBucket}`);
         return undefined;
