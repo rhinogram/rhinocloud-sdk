@@ -426,7 +426,7 @@ await copyMyFile();
 * `moveS3Directory(parameters)`: <Promise> Recursively delete directory/file from a S3 location.
 #### parameters properties
   * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
-  * `s3SourceDirectory` (string) `required`: Directory in S3 to move.
+  * `s3SourceDirectory` (string) `required`: Directory in S3 to delete.
   * `options` (object) `optional`:
     * `MFA` (string)
     * `RequestPayer` (string)
@@ -450,7 +450,7 @@ async function deleteSomeFiles() {
 await deleteSomeFiles();
 ```
 
-###deleteS3File
+### deleteS3File
 * `deleteS3File(parameters)`: <Promise> Delete a file from a S3 location
 #### parameters properties
   * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
