@@ -1,8 +1,10 @@
 const { convertFilePathToBuffer } = require('./file.tools');
 
-module.exports.getS3UploadParameters = (bucket, key, filePathToUpload, options={}) => {
+module.exports.getS3UploadParameters = ({
+  bucket, key, filePathToUpload, options = {},
+} = {}) => {
   if (!bucket || !key) {
-    throw new Error(`S3 Upload options must include bucket and key`);
+    throw new Error('S3 Upload options must include bucket and key');
   } else {
     return {
       Bucket: bucket,
@@ -29,14 +31,16 @@ module.exports.getS3UploadParameters = (bucket, key, filePathToUpload, options={
       ...options.sseKmsKeyId && { SSEKMSKeyId: options.sseKmsKeyId },
       ...options.serverSideEncryption && { ServerSideEncryption: options.serverSideEncryption },
       ...options.tagging && { Tagging: options.tagging },
-      ...options.websiteRedirectLocation && { WebsiteRedirectLocation: options.websiteRedirectLocation }
+      ...options.websiteRedirectLocation && { WebsiteRedirectLocation: options.websiteRedirectLocation },
     };
   }
 };
 
-module.exports.getS3MoveParameters = (sourceBucket, destinationBucket, sourceKey, destinationKey, options={}) => {
+module.exports.getS3MoveParameters = ({
+  sourceBucket, destinationBucket, sourceKey, destinationKey, options = {},
+} = {}) => {
   if (!sourceBucket || !destinationBucket || !sourceKey || !destinationKey) {
-    throw new Error(`S3 Move parameters requires sourceBucket, destinationBucket, sourceKey, and destinationKey`);
+    throw new Error('S3 Move parameters requires sourceBucket, destinationBucket, sourceKey, and destinationKey');
   } else {
     return {
       Bucket: destinationBucket,
@@ -68,7 +72,28 @@ module.exports.getS3MoveParameters = (sourceBucket, destinationBucket, sourceKey
       ...options.sseKmsKeyId && { SSEKMSKeyId: options.sseKmsKeyId },
       ...options.serverSideEncryption && { ServerSideEncryption: options.serverSideEncryption },
       ...options.tagging && { Tagging: options.tagging },
-      ...options.websiteRedirectLocation && { WebsiteRedirectLocation: options.websiteRedirectLocation }
+      ...options.websiteRedirectLocation && { WebsiteRedirectLocation: options.websiteRedirectLocation },
+    };
+  }
+};
+
+module.exports.getS3DeleteParameters = ({
+  sourceBucket, sourceS3Files, sourceS3File, sourceS3VersionId, options = {},
+} = {}) => {
+  if (!sourceBucket && (!sourceS3File || !sourceS3Files)) {
+    throw new Error('S3 Bucket parmeters requires sourceBucket and sourceS3File or sourceS3Directory');
+  } else {
+    return {
+      Bucket: sourceBucket,
+      ...sourceS3Files && {
+        Delete: {
+          Objects: sourceS3Files,
+        },
+        ...sourceS3File && { Key: sourceS3File },
+        ...sourceS3VersionId && { VersionId: sourceS3VersionId },
+        ...options.MFA && { MFA: options.MFA },
+        ...options.requestPayer && { RequestPayer: options.requestPayer },
+      },
     };
   }
 };

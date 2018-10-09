@@ -1,6 +1,6 @@
 {
   "name": "rhinocloud-sdk",
-  "version": "1.0.81",
+  "version": "1.0.9",
   "description": "Rhinogram's JavaScript-friendly toolbox for CloudFormation deployments",
   "engines": {
     "yarn": "1.x",
@@ -10,7 +10,9 @@
   "main": "index.js",
   "author": "Rhinogram, LLC",
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint-config-rhinogram": "^0.0.x"
+  },
   "dependencies": {
     "aws-sdk": "2.289.x"
   }

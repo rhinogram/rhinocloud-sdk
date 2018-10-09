@@ -8,25 +8,25 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     apiVersion: apiVersions.CloudFormation,
     accessKeyId,
     secretAccessKey,
-    region
+    region,
   });
 
   // -------------------------- API functions ---------------------------- //
   async function changeTerminationProtection({ stackName, enableTerminationProtection } = {}) {
     if (!stackName || !enableTerminationProtection) {
-      throw new Error(`Must include enableTerminationProtection (string) and stackName (string) for CloudFormation`);
+      throw new Error('Must include enableTerminationProtection (string) and stackName (string) for CloudFormation');
     }
     const updateParams = {
       StackName: stackName,
-      EnableTerminationProtection: enableTerminationProtection
+      EnableTerminationProtection: enableTerminationProtection,
     };
     const resp = await cf.updateTerminationProtection(updateParams).promise();
     return resp;
   }
-
-  async function cloudForm({ templatePath, stackName, options={} } = {}) {
+  //eslint-disable-next-line consistent-return
+  async function cloudForm({ templatePath, stackName, options = {} } = {}) {
     if (!templatePath || !stackName) {
-      throw new Error(`Must include stackName (string) and templatePath (string) for CloudFormation`);
+      throw new Error('Must include stackName (string) and templatePath (string) for CloudFormation');
     } else {
       const fileExists = fs.existsSync(templatePath);
       if (!fileExists) {
@@ -35,7 +35,9 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     }
 
     const stackAlreadyExists = await stackExists(stackName);
-    const { waitToComplete, parameters, stdout, enableTerminationProtection } = paramTools.getOptions(options);
+    const {
+      waitToComplete, parameters, stdout, enableTerminationProtection,
+    } = paramTools.getOptions(options);
 
     if (stackAlreadyExists) {
       await updateStack(stackName, templatePath, parameters, stdout);
@@ -43,28 +45,28 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
       await createStack(templatePath, stackName, parameters, enableTerminationProtection);
     }
     if (waitToComplete) {
-      return await waitOnStackToStabilize(stackName, stdout);
+      return waitOnStackToStabilize(stackName, stdout);
     }
   }
 
-  async function createStack(templatePath, stackName, parameters=[], enableTerminationProtection) {
+  async function createStack(templatePath, stackName, parameters = [], enableTerminationProtection) {
     if (!templatePath || !stackName) {
-      throw new Error(`Must include templatePath (string) and stackName (string) for CloudFormation`);
+      throw new Error('Must include templatePath (string) and stackName (string) for CloudFormation');
     }
     const params = {
       StackName: stackName,
       TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
       EnableTerminationProtection: enableTerminationProtection,
       Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
-      Parameters: paramTools.getCloudFormationParameters(parameters)
+      Parameters: paramTools.getCloudFormationParameters(parameters),
     };
     const resp = await cf.createStack(params).promise();
     return resp;
   }
 
-  async function deleteStack({ stackName, options={} } = {}) {
+  async function deleteStack({ stackName, options = {} } = {}) {
     if (!stackName) {
-      throw new Error(`Must include stackName (string) for CloudFormation`)
+      throw new Error('Must include stackName (string) for CloudFormation');
     }
     const deleteParams = { StackName: stackName };
     const resp = await cf.deleteStack(deleteParams).promise();
@@ -84,17 +86,17 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     return resp;
   }
 
-  async function getStackOutputs(stackName='') {
+  async function getStackOutputs(stackName = '') {
     if (!stackName) {
-      throw new Error(`Must include stackName (string) for CloudFormation`)
+      throw new Error('Must include stackName (string) for CloudFormation');
     }
     const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
     return Stacks.pop();
   }
 
-  async function stackExists (stackName='') {
+  async function stackExists(stackName = '') {
     if (!stackName) {
-      throw new Error(`Must include stackName (string) for CloudFormation`)
+      throw new Error('Must include stackName (string) for CloudFormation');
     }
     try {
       const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
@@ -109,21 +111,21 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     }
   }
 
-  async function updateStack(stackName, templatePath, parameters=[], stdout) {
+  async function updateStack(stackName, templatePath, parameters = [], stdout) {
     if (!stackName || !templatePath) {
-      throw new Error(`Must include stackName (string) and templatesPath (string) for CloudFormation`)
+      throw new Error('Must include stackName (string) and templatesPath (string) for CloudFormation');
     }
     try {
       const updateParams = {
         StackName: stackName,
         TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
         Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
-        Parameters: paramTools.getCloudFormationParameters(parameters)
+        Parameters: paramTools.getCloudFormationParameters(parameters),
       };
       const resp = await cf.updateStack(updateParams).promise();
       return resp;
     } catch (error) {
-      const noUpdatesMsg = `No updates are to be performed.`;
+      const noUpdatesMsg = 'No updates are to be performed.';
       if (error.message === noUpdatesMsg) {
         if (stdout) console.log(noUpdatesMsg);
         return null;
@@ -133,9 +135,9 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   }
 
 
-  async function waitOnStackToStabilize(stackName, stdout, retry=0) {
+  async function waitOnStackToStabilize(stackName, stdout, retry = 0) {
     if (!stackName) {
-      throw new Error(`Must include stackName (string) for CloudFormation`)
+      throw new Error('Must include stackName (string) for CloudFormation');
     }
     const describeParams = { StackName: stackName };
     const WAIT_INTERVAL = 5000;
@@ -146,17 +148,18 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
       if (stdout) console.log(StackStatus);
 
       if (StackStatus.includes('COMPLETE')) {
-        if (stdout) console.log(`done!`);
+        if (stdout) console.log('done!');
         return {
           stackName,
-          complete: true
+          complete: true,
         };
-      } else if (StackStatus.includes('FAILED')) {
+      } if (StackStatus.includes('FAILED')) {
         throw new Error(`${stackName} experience a CloudFormation error.`);
       } else {
-        retry +=1;
-        await new Promise((res) => setTimeout(res, WAIT_INTERVAL));
-        return waitOnStackToStabilize(stackName, stdout, retry);
+        let retryCount = retry;
+        retryCount += 1;
+        await new Promise((res) => { return setTimeout(res, WAIT_INTERVAL); });
+        return waitOnStackToStabilize(stackName, stdout, retryCount);
       }
     } else {
       throw new Error(`Timeout waiting for CloudFormation stack: ${stackName}`);
