@@ -54,17 +54,19 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
     } else {
       const excludeFiles = options.exclude || [];
       const filePathsArr = getFilePathsFromDirectory(sourceDirectory, excludeFiles);
-      for (const filePath of filePathsArr) {
-        // this allows the use of directory or directory/
-        const slash = s3Location[s3Location.length - 1] === '/' ? '' : '/';
-        const fullS3FilePath = `${s3Location}${slash}${filePath}`;
-        const s3UploadOptions = getS3UploadParameters({
-          bucket, key: fullS3FilePath, filePathToUplodad: filePath, options,
-        });
-        const waitInterval = options.throttleInterval || 100;
-        await new Promise((res) => { return setTimeout(res, waitInterval); });
-        await s3.putObject(s3UploadOptions).promise();
-        debugLog(`${filePath} to ${fullS3FilePath}`);
+      if (filePathsArr.length > 0) {
+        for (const filePath of filePathsArr) {
+          // this allows the use of directory or directory/
+          const slash = s3Location[s3Location.length - 1] === '/' ? '' : '/';
+          const fullS3FilePath = `${s3Location}${slash}${filePath}`;
+          const s3UploadOptions = getS3UploadParameters({
+            bucket, key: fullS3FilePath, filePathToUplodad: filePath, options,
+          });
+          const waitInterval = options.throttleInterval || 100;
+          await new Promise((res) => { return setTimeout(res, waitInterval); });
+          await s3.putObject(s3UploadOptions).promise();
+          debugLog(`${filePath} to ${fullS3FilePath}`);
+        }
       }
     }
   }
@@ -101,24 +103,25 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => { return (k.Key); }).filter((k) => { return !excludedFiles.includes(k); });
+      if (mappedKeys.length > 0) {
+        for (const key of mappedKeys) {
+          const fileName = getFileNameFromS3Key(key);
+          // this allows the use of directory or directory/
+          const slash = s3DestinationDirectory[s3DestinationDirectory.length - 1] === '/' ? '' : '/';
+          const newKey = (s3DestinationDirectory !== '' && s3DestinationDirectory !== '/') ? `${s3DestinationDirectory}${slash}${fileName}` : key;
+          const moveParams = {
+            sourceBucket,
+            s3SourceFile: key,
+            destinationBucket,
+            s3DestinationFile: newKey,
+            options,
+          };
 
-      for (const key of mappedKeys) {
-        const fileName = getFileNameFromS3Key(key);
-        // this allows the use of directory or directory/
-        const slash = s3DestinationDirectory[s3DestinationDirectory.length - 1] === '/' ? '' : '/';
-        const newKey = (s3DestinationDirectory !== '' && s3DestinationDirectory !== '/') ? `${s3DestinationDirectory}${slash}${fileName}` : key;
-        const moveParams = {
-          sourceBucket,
-          s3SourceFile: key,
-          destinationBucket,
-          s3DestinationFile: newKey,
-          options,
-        };
-
-        const waitInterval = options.throttleInterval || 100;
-        await new Promise((res) => { return setTimeout(res, waitInterval); });
-        await moveS3File(moveParams);
-        debugLog(`moving s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
+          const waitInterval = options.throttleInterval || 100;
+          await new Promise((res) => { return setTimeout(res, waitInterval); });
+          await moveS3File(moveParams);
+          debugLog(`moving s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
+        }
       }
     }
   }
@@ -167,23 +170,25 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
       const mappedKeys = keyObjects.map((k) => { return (k.Key); }).filter((k) => { return !excludedFiles.includes(k); });
-      for (const key of mappedKeys) {
-        const fileName = getFileNameFromS3Key(key);
-        // this allows the use of directory or directory/
-        const slash = s3DestinationDirectory[s3DestinationDirectory.length - 1] === '/' ? '' : '/';
-        const newKey = (s3DestinationDirectory !== '' && s3DestinationDirectory !== '/') ? `${s3DestinationDirectory}${slash}${fileName}` : key;
-        const copyParams = {
-          sourceBucket,
-          s3SourceFile: key,
-          destinationBucket,
-          s3DestinationFile: newKey,
-          options,
-        };
+      if (mappedKeys.length > 0) {
+        for (const key of mappedKeys) {
+          const fileName = getFileNameFromS3Key(key);
+          // this allows the use of directory or directory/
+          const slash = s3DestinationDirectory[s3DestinationDirectory.length - 1] === '/' ? '' : '/';
+          const newKey = (s3DestinationDirectory !== '' && s3DestinationDirectory !== '/') ? `${s3DestinationDirectory}${slash}${fileName}` : key;
+          const copyParams = {
+            sourceBucket,
+            s3SourceFile: key,
+            destinationBucket,
+            s3DestinationFile: newKey,
+            options,
+          };
 
-        const waitInterval = options.throttleInterval || 100;
-        await new Promise((res) => { return setTimeout(res, waitInterval); });
-        await copyS3File(copyParams);
-        debugLog(`copying s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
+          const waitInterval = options.throttleInterval || 100;
+          await new Promise((res) => { return setTimeout(res, waitInterval); });
+          await copyS3File(copyParams);
+          debugLog(`copying s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
+        }
       }
     }
   }
@@ -228,7 +233,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
           const keyVersionMap = keyVersionArray.map((k) => { return { Key: k.Key, VersionId: k.VersionId }; }).filter((k) => { return !excludedFiles.includes(k); });
           const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
           counter += keyVersionArray.length;
-          if (keyVersionArray.length !== 0) {
+          if (keyVersionArray.length > 0) {
             await s3.deleteObjects(deleteParams).promise();
           }
         }
