@@ -11,7 +11,11 @@
   "author": "Rhinogram, LLC",
   "license": "MIT",
   "devDependencies": {
-    "eslint-config-rhinogram": "^0.0.x"
+    "aws-sdk-mock": "4.2.0",
+    "chai": "4.2.0",
+    "eslint-config-rhinogram": "^0.0.x",
+    "mocha": "5.2.0",
+    "sinon": "6.3.5"
   },
   "dependencies": {
     "aws-sdk": "2.289.x"

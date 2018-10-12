@@ -423,7 +423,7 @@ await copyMyFile();
 ```
 
 ### deleteS3Directory
-* `moveS3Directory(parameters)`: <Promise> Recursively delete directory/file from a S3 location.
+* `deleteS3Directory(parameters)`: <Promise> Recursively delete directory/file from a S3 location.
 #### parameters properties
   * `sourceBucket` (string) `required`: Name of the S3 bucket where the directory originated.
   * `s3SourceDirectory` (string) `required`: Directory in S3 to delete.
