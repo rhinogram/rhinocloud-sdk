@@ -10,6 +10,9 @@
   "main": "index.js",
   "author": "Rhinogram, LLC",
   "license": "MIT",
+  "scripts:": {
+    "test:unit": "mocha --recursive ./"
+  },
   "devDependencies": {
     "aws-sdk-mock": "4.2.0",
     "chai": "4.2.0",
