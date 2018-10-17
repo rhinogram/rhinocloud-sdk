@@ -158,7 +158,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
       } else {
         let retryCount = retry;
         retryCount += 1;
-        await new Promise((res) => { return setTimeout(res, WAIT_INTERVAL); });
+        await new Promise((res) => setTimeout(res, WAIT_INTERVAL));
         return waitOnStackToStabilize(stackName, stdout, retryCount);
       }
     } else {
