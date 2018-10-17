@@ -1,13 +1,21 @@
-defaults: &defaults
-  working_directory: ~/rhinoinfrastructure
-  docker:
-    - image: rhinogram/node-awscli:latest
-
 version: 2
 jobs:
 
-  test:
-    <<: *defaults
+  test-8.11:
+    working_directory: ~/app
+    docker:
+      - image: node:8.11
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: eslint
+          command: yarn && yarn eslint .
+  
+  test-8.10:
+    working_directory: ~/app
+    docker:
+      - image: node:8.10
     steps:
       - setup_remote_docker
       - checkout
@@ -20,4 +28,5 @@ workflows:
 
   general:
     jobs:
-      - test
+      - test-8.10
+      - test-8.11
