@@ -1,7 +1,7 @@
 version: 2
 jobs:
 
-  test-8.11:
+  node-8.11:
     working_directory: ~/app
     docker:
       - image: node:8.11
@@ -12,7 +12,7 @@ jobs:
           name: eslint
           command: yarn && yarn eslint .
   
-  test-8.10:
+  node-8.10:
     working_directory: ~/app
     docker:
       - image: node:8.10
@@ -26,7 +26,7 @@ jobs:
 workflows:
   version: 2
 
-  general:
+  test:
     jobs:
-      - test-8.10
-      - test-8.11
+      - node-8.10
+      - node-8.11
