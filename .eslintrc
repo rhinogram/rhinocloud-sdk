@@ -24,6 +24,7 @@
     "no-await-in-loop": 0,
     "no-multi-assign": 0,
     "no-return-await": 2,
-    "no-unused-vars": 1
+    "no-unused-vars": 2,
+    "no-console": 1
   }
 }
