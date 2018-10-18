@@ -42,12 +42,16 @@ workflows:
 
   test:
     jobs:
-      - node-8.10
-      - node-8.11
-    filters:
-      branches:
-        ignore:
-          - master
+      - node-8.10:
+          filters:
+            branches:
+              ignore:
+                - master
+      - node-8.11:
+          filters:
+            branches:
+              ignore:
+                - master
 
   release:
     jobs:
