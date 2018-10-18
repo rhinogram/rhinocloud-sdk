@@ -23,6 +23,20 @@ jobs:
           name: eslint
           command: yarn && yarn eslint .
 
+  publish:
+    working_directory: ~/app
+    docker:
+      - image: node:8.11
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Publish to NPM
+          command: |
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+            npm publish
+
+
 workflows:
   version: 2
 
@@ -30,3 +44,20 @@ workflows:
     jobs:
       - node-8.10
       - node-8.11
+    filters:
+      branches:
+        ignore:
+          - master
+
+  release:
+    jobs:
+      - test:
+          filters:
+            branches:
+              only:
+                - master
+      - publish:
+          filters:
+            branches:
+              only:
+                - master

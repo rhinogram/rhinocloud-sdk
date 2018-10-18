@@ -3,3 +3,4 @@
 *.log
 .circleci
 .vscode
+.github
