@@ -10,8 +10,12 @@
   "main": "index.js",
   "author": "Rhinogram, LLC",
   "license": "MIT",
+  "scripts": {
+    "release": "release-it -n"
+  },
   "devDependencies": {
-    "eslint": "5.7.x"
+    "eslint": "5.7.x",
+    "release-it": "^8.3.1"
   },
   "dependencies": {
     "aws-sdk": "2.289.x"

@@ -30,11 +30,10 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
+      - run: yarn
       - run:
           name: Publish to NPM
-          command: |
-            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-            npm publish
+          command: yarn release
 
 
 workflows:
@@ -55,7 +54,12 @@ workflows:
 
   release:
     jobs:
-      - test:
+      - node-8.10:
+          filters:
+            branches:
+              only:
+                - master
+      - node-8.11:
           filters:
             branches:
               only:
@@ -65,3 +69,6 @@ workflows:
             branches:
               only:
                 - master
+          requires:
+            - node-8.11
+            - node-8.10
