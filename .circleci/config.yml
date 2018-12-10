@@ -32,8 +32,9 @@ jobs:
       - checkout
       - run: yarn
       - run:
-          name: Tell release-it who is publishing
+          name: Config Git
           command: |
+            git config --global push.default simple
             git config --global user.email $GIT_EMAIL
             git config --global user.name "Rhinogram, LLC"
       - run:
