@@ -26,11 +26,16 @@ jobs:
   publish:
     working_directory: ~/app
     docker:
-      - image: node:8.11
+      - image: rhinogram/node-awscli:latest
     steps:
       - setup_remote_docker
       - checkout
       - run: yarn
+      - run:
+          name: Tell release-it who is publishing
+          command: |
+            git config --global user.email $GIT_EMAIL
+            git config --global user.name "Rhinogram, LLC"
       - run:
           name: Publish to NPM
           command: yarn release
