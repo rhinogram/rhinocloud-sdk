@@ -39,7 +39,9 @@ jobs:
             git config --global user.name "Rhinogram, LLC"
       - run:
           name: Publish to NPM
-          command: yarn release
+          command: |
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+            yarn release
 
 
 workflows:
