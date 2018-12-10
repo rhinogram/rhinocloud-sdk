@@ -14,7 +14,7 @@ const rhinocloud = new Rhinocloud({
   accessKeyId: < Your AWS Access Key Id >,
   secretAccessKey: < Your AWS Secret Key >,
   region: < AWS Region >,
-  });
+});
 ```
 
 * OR You can use process.env keys before instantiating a new instance:
@@ -24,7 +24,6 @@ const rhinocloud = new Rhinocloud({
 
 
 * Setting `process.env.DEBUG === true` will enable debug mode.
-
 
 * Example using `dotenv` library with `rhinocloud-sdk`: https://www.npmjs.com/package/dotenv
 ```bash
@@ -62,7 +61,6 @@ turnOnTerminationProtection();
   * `stackName` (string) `required`: Name of a CloudFormation stack (must be unique across AWS account).
   * `options` (object) `optional`:
     * `waitToComplete` (boolean):  Wait on a success or failure response (defaults to `true`).
-    * `stdout` (boolean): Print standard output to the console (defaults to `true`).
     * `parameters` (array): CloudFormation parameters that correlate to the CloudFormation template. Each object in the array must contain:
       * `key` (string): Name of the parameter.
       * `value` (any): Value of the parameter.
@@ -114,7 +112,6 @@ createOrUpdate();
   * `stackName` (string) `required`: Name of CloudFormation stack to delete.
   * `options` (object) `optional`:
     * `waitToComplete` (boolean):  Wait on a success or failure response (defaults to `true`).
-    * `stdout` (boolean): Print standard output to the console (defaults to `true`).
 #### Example
 ```bash
 async function delete() {

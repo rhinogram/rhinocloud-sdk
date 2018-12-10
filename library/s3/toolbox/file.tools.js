@@ -29,9 +29,9 @@ module.exports.getFilePathsFromDirectory = (directoryPath = '', excludeFiles = [
     return fullPath;
   });
 
-  const filtered = files.filter((f) => { return !excludeFiles.includes(f); });
+  const filtered = files.filter((f) => !excludeFiles.includes(f));
   // flatten the array of arrays
-  return [].concat.apply([], ...filtered);
+  return [].concat.apply([], filtered);
 };
 
 

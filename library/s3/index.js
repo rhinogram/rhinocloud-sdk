@@ -63,7 +63,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
             bucket, key: fullS3FilePath, filePathToUplodad: filePath, options,
           });
           const waitInterval = options.throttleInterval || 100;
-          await new Promise((res) => { return setTimeout(res, waitInterval); });
+          await new Promise((res) => setTimeout(res, waitInterval));
           await s3.putObject(s3UploadOptions).promise();
           debugLog(`${filePath} to ${fullS3FilePath}`);
         }
@@ -102,7 +102,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, NextContinuationToken });
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
-      const mappedKeys = keyObjects.map((k) => { return (k.Key); }).filter((k) => { return !excludedFiles.includes(k); });
+      const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
       if (mappedKeys.length > 0) {
         for (const key of mappedKeys) {
           const fileName = getFileNameFromS3Key(key);
@@ -118,7 +118,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
           };
 
           const waitInterval = options.throttleInterval || 100;
-          await new Promise((res) => { return setTimeout(res, waitInterval); });
+          await new Promise((res) => setTimeout(res, waitInterval));
           await moveS3File(moveParams);
           debugLog(`moving s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
         }
@@ -169,7 +169,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, NextContinuationToken });
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
-      const mappedKeys = keyObjects.map((k) => { return (k.Key); }).filter((k) => { return !excludedFiles.includes(k); });
+      const mappedKeys = keyObjects.map((k) => (k.Key)).filter((k) => !excludedFiles.includes(k));
       if (mappedKeys.length > 0) {
         for (const key of mappedKeys) {
           const fileName = getFileNameFromS3Key(key);
@@ -185,7 +185,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
           };
 
           const waitInterval = options.throttleInterval || 100;
-          await new Promise((res) => { return setTimeout(res, waitInterval); });
+          await new Promise((res) => setTimeout(res, waitInterval));
           await copyS3File(copyParams);
           debugLog(`copying s3://${sourceBucket}/${key} to s3://${destinationBucket}/${newKey}`);
         }
@@ -230,7 +230,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
 
         for (const keyVersionArray of keyVersionArrays) {
           const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
-          const keyVersionMap = keyVersionArray.map((k) => { return { Key: k.Key, VersionId: k.VersionId }; }).filter((k) => { return !excludedFiles.includes(k); });
+          const keyVersionMap = keyVersionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
           const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
           counter += keyVersionArray.length;
           if (keyVersionArray.length > 0) {
@@ -241,7 +241,7 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
         return undefined;
       }
       const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
-      const keyVersionMap = keyVersionObjects.map((k) => { return { Key: k.Key, VersionId: k.VersionId }; }).filter((k) => { return !excludedFiles.includes(k); });
+      const keyVersionMap = keyVersionObjects.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
       const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
       await s3.deleteObjects(deleteParams).promise();
       debugLog(`deleted ${keyVersionObjects.length} files from S3 Bucket: ${sourceBucket}`);

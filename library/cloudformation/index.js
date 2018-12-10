@@ -2,6 +2,7 @@ const fs = require('fs');
 const { CloudFormation } = require('aws-sdk');
 const apiVersions = require('../../apiVersions.json');
 const paramTools = require('./toolbox/parameter.tools');
+const { debugLog } = require('../helpers');
 
 function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   const cf = new CloudFormation({
@@ -36,16 +37,16 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
 
     const stackAlreadyExists = await stackExists(stackName);
     const {
-      waitToComplete, parameters, stdout, enableTerminationProtection,
+      waitToComplete, parameters, enableTerminationProtection,
     } = paramTools.getOptions(options);
 
     if (stackAlreadyExists) {
-      await updateStack(stackName, templatePath, parameters, stdout);
+      await updateStack(stackName, templatePath, parameters);
     } else {
       await createStack(templatePath, stackName, parameters, enableTerminationProtection);
     }
     if (waitToComplete) {
-      return waitOnStackToStabilize(stackName, stdout);
+      return waitOnStackToStabilize(stackName);
     }
   }
 
@@ -70,14 +71,14 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     }
     const deleteParams = { StackName: stackName };
     const resp = await cf.deleteStack(deleteParams).promise();
-    const { waitToComplete, stdout } = paramTools.getOptions(options);
+    const { waitToComplete } = paramTools.getOptions(options);
     if (waitToComplete) {
       try {
-        await waitOnStackToStabilize(stackName, stdout);
+        await waitOnStackToStabilize(stackName);
       } catch (error) {
         const noLongerExistsMsg = `Stack with id ${stackName} does not exist`;
         if (error.message === noLongerExistsMsg) {
-          if (stdout) console.log(`Successfully deleted ${stackName}`);
+          debugLog(`Successfully deleted ${stackName}`);
           return resp;
         }
         throw error;
@@ -111,7 +112,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     }
   }
 
-  async function updateStack(stackName, templatePath, parameters = [], stdout) {
+  async function updateStack(stackName, templatePath, parameters = []) {
     if (!stackName || !templatePath) {
       throw new Error('Must include stackName (string) and templatesPath (string) for CloudFormation');
     }
@@ -127,7 +128,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     } catch (error) {
       const noUpdatesMsg = 'No updates are to be performed.';
       if (error.message === noUpdatesMsg) {
-        if (stdout) console.log(noUpdatesMsg);
+        debugLog(noUpdatesMsg);
         return null;
       }
       throw error;
@@ -135,7 +136,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   }
 
 
-  async function waitOnStackToStabilize(stackName, stdout, retry = 0) {
+  async function waitOnStackToStabilize(stackName, retry = 0) {
     if (!stackName) {
       throw new Error('Must include stackName (string) for CloudFormation');
     }
@@ -145,10 +146,10 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
       const { Stacks } = await cf.describeStacks(describeParams).promise();
       const { StackStatus } = Stacks[0];
 
-      if (stdout) console.log(StackStatus);
+      debugLog(StackStatus);
 
       if (StackStatus.includes('COMPLETE')) {
-        if (stdout) console.log('done!');
+        debugLog('done!');
         return {
           stackName,
           complete: true,
@@ -158,8 +159,8 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
       } else {
         let retryCount = retry;
         retryCount += 1;
-        await new Promise((res) => { return setTimeout(res, WAIT_INTERVAL); });
-        return waitOnStackToStabilize(stackName, stdout, retryCount);
+        await new Promise((res) => setTimeout(res, WAIT_INTERVAL));
+        return waitOnStackToStabilize(stackName, retryCount);
       }
     } else {
       throw new Error(`Timeout waiting for CloudFormation stack: ${stackName}`);
