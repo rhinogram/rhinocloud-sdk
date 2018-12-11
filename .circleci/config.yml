@@ -38,7 +38,7 @@ jobs:
               git config --global push.default simple
               git config --global user.email $GIT_EMAIL
               git config --global user.name "Rhinogram, LLC"
-              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/app/.npmrc
               yarn release
             else
               echo 'This push was the result of a previous publish. Not republishing.'
