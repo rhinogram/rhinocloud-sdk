@@ -73,11 +73,11 @@ workflows:
             branches:
               only:
                 - master
-      - publish:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - node-8.11
-            - node-8.10
+      # - publish:
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      #     requires:
+      #       - node-8.11
+      #       - node-8.10
