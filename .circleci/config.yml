@@ -32,16 +32,17 @@ jobs:
       - checkout
       - run: yarn
       - run:
-          name: Config Git
-          command: |
-            git config --global push.default simple
-            git config --global user.email $GIT_EMAIL
-            git config --global user.name "Rhinogram, LLC"
-      - run:
           name: Publish to NPM
           command: |
-            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-            yarn release
+            if [ "$CIRCLE_USERNAME" != "rhinogram-circleci" ]; then
+              git config --global push.default simple
+              git config --global user.email $GIT_EMAIL
+              git config --global user.name "Rhinogram, LLC"
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+              yarn release
+            else
+              echo 'This push was the result of a previous publish. Not republishing.'
+            fi
 
 
 workflows:
