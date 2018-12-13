@@ -92,7 +92,8 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
       throw new Error('Must include stackName (string) for CloudFormation');
     }
     const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
-    return Stacks.pop();
+    const { Outputs } = Stacks.pop();
+    return Outputs;
   }
 
   async function stackExists(stackName = '') {

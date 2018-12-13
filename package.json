@@ -4,18 +4,14 @@
   "description": "Rhinogram's JavaScript-friendly toolbox for CloudFormation deployments",
   "engines": {
     "yarn": "1.x",
-    "node": "8.x",
+    "node": ">=8.x",
     "npm": "5.x"
   },
   "main": "index.js",
   "author": "Rhinogram, LLC",
   "license": "MIT",
-  "scripts": {
-    "release": "release-it -n"
-  },
   "devDependencies": {
-    "eslint": "5.7.x",
-    "release-it": "^8.3.1"
+    "eslint": "5.7.x"
   },
   "dependencies": {
     "aws-sdk": "2.289.x"
