@@ -1,6 +1,17 @@
 version: 2
 jobs:
 
+  node-10:
+    working_directory: ~/app
+    docker:
+      - image: node:dubnium-alpine
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: eslint
+          command: yarn && yarn eslint .
+
   node-8.11:
     working_directory: ~/app
     docker:
@@ -34,15 +45,11 @@ jobs:
       - run:
           name: Publish to NPM
           command: |
-            if [ "$CIRCLE_USERNAME" != "rhinogram-circleci" ]; then
-              git config --global push.default simple
-              git config --global user.email $GIT_EMAIL
-              git config --global user.name "Rhinogram, LLC"
-              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/app/.npmrc
-              yarn release
-            else
-              echo 'This push was the result of a previous publish. Not republishing.'
-            fi
+            git config --global push.default simple
+            git config --global user.email $GIT_EMAIL
+            git config --global user.name "Rhinogram, LLC"
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+            npm publish
 
 
 workflows:
@@ -60,6 +67,11 @@ workflows:
             branches:
               ignore:
                 - master
+      - node-10:
+          filters:
+            branches:
+              ignore:
+                - master
 
   release:
     jobs:
@@ -73,11 +85,17 @@ workflows:
             branches:
               only:
                 - master
-      # - publish:
-      #     filters:
-      #       branches:
-      #         only:
-      #           - master
-      #     requires:
-      #       - node-8.11
-      #       - node-8.10
+      - node-10:
+          filters:
+            branches:
+              ignore:
+                - master
+      - publish:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - node-8.11
+            - node-8.10
+            - node-10

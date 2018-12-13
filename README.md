@@ -123,6 +123,38 @@ async function delete() {
 delete();
 ```
 
+### getStackOutputs
+* `getStackOutputs(stackName)`: <Promise> Get an array of output objects from the `Outputs` section of a CloudFormation template.
+#### arguments
+  * `stackName` (string) `require`: Name of a CloudFormation stack.
+#### Example
+```bash
+# cloudformation.yml
+# created with a stack name of s3-my-bucket
+...
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'my-bucket'
+...
+Outputs:
+  Bucket:
+    Value: !Ref Bucket
+```
+
+```bash
+async function logStackOutputs() {
+  const outputs = await rhinocloud.cloudformation.getStackOutputs('s3-my-bucket');
+  console.log(outputs);
+#  [
+#   { OutputKey: 'Bucket', OutputValue: 'my-bucket' }  
+#  ]
+}
+
+logStackOutputs();
+```
+
 ### stackExists
 * `stackExists(stackName)`: <Promise> Returns `true` or `false` if a CloudFormation stack exists.
 #### arguments
