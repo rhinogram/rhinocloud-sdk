@@ -88,7 +88,7 @@ workflows:
       - node-10:
           filters:
             branches:
-              ignore:
+              only:
                 - master
       - publish:
           filters:
