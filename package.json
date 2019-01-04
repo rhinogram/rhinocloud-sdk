@@ -11,12 +11,12 @@
   "author": "Rhinogram, LLC",
   "license": "MIT",
   "devDependencies": {
-    "aws-sdk-mock": "^4.3.0",
+    "aws-sdk-mock": "4.3.x",
     "chai": "4.2.x",
     "eslint": "5.7.x",
     "mocha": "5.2.x",
     "rewire": "4.0.x",
-    "sinon": "^7.2.2"
+    "sinon": "7.2.x"
   },
   "dependencies": {
     "aws-sdk": "2.289.x"
