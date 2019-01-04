@@ -58,10 +58,10 @@ describe('library/s3/index.js', () => {
           sourceDirectory: 'tmp',
         };
         return sut.uploadS3Directory(params)
-        .then((resp) => {
-          // console.log(resp);
-          return resp;
-        })
+        // .then((resp) => {
+        //   console.log(resp);
+        //   assert(debugLogStub.called);
+        // })
         .then(done)
         .catch(done);
       });
