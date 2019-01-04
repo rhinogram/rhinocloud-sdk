@@ -60,14 +60,18 @@ function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
           const slash = s3Location[s3Location.length - 1] === '/' ? '' : '/';
           const fullS3FilePath = `${s3Location}${slash}${filePath}`;
           const s3UploadOptions = getS3UploadParameters({
-            bucket, key: fullS3FilePath, filePathToUplodad: filePath, options,
+            bucket, key: fullS3FilePath, filePathToUpload: filePath, options,
           });
           const waitInterval = options.throttleInterval || 100;
           await new Promise((res) => setTimeout(res, waitInterval));
-          await s3.putObject(s3UploadOptions).promise();
+          const resp = await s3.putObject(s3UploadOptions).promise();
           debugLog(`${filePath} to ${fullS3FilePath}`);
+          return resp;
         }
+      } else {
+        debugLog('No files uploaded');
       }
+      return {};
     }
   }
 
