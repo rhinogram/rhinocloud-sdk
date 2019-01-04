@@ -1,7 +1,7 @@
 const rewire = require('rewire');
 const AWS = require('aws-sdk-mock');
 const { spy } = require('sinon');
-const { assert } = require('chai');
+// const { assert } = require('chai');
 const SUT = rewire('../../library/s3');
 
 describe('library/s3/index.js', () => {
@@ -11,6 +11,7 @@ describe('library/s3/index.js', () => {
       const arr = [`${sourceDir}/some/file.txt`, `${sourceDir}/another/file.json`];
       return arr;
     };
+    // eslint-disable-next-line
     const getS3UploadParametersStub = ({ bucket, key, filePathToUpload, options={} }) => {
       return {
         Bucket: bucket,
@@ -58,7 +59,7 @@ describe('library/s3/index.js', () => {
         };
         return sut.uploadS3Directory(params)
         .then((resp) => {
-          console.log(resp);
+          // console.log(resp);
           return resp;
         })
         .then(done)
