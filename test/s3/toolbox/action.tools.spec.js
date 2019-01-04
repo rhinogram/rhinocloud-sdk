@@ -1,6 +1,6 @@
 const rewire = require('rewire');
 const { expect } = require('chai');
-const sut = rewire('../../library/s3/toolbox/action.tools.js');
+const sut = rewire('../../../library/s3/toolbox/action.tools.js');
 
 describe('library/s3/toolbox/action.tools.js', () => {
   describe('getS3UploadParameters()', () => {
@@ -10,6 +10,7 @@ describe('library/s3/toolbox/action.tools.js', () => {
       }
       return new Buffer('Some string');
     };
+
     sut.__set__('convertFilePathToBuffer', convertFilePathToBufferStub);
 
     describe('When given Bucket, s3Key, and filePath', () => {

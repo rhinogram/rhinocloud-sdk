@@ -8,9 +8,13 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
+      - run: yarn
       - run:
           name: eslint
-          command: yarn && yarn eslint .
+          command: yarn eslint .
+      - run:
+          name: Unit Tests
+          command: yarn test
 
   node-8.11:
     working_directory: ~/app
@@ -19,10 +23,14 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
+      - run: yarn
       - run:
           name: eslint
-          command: yarn && yarn eslint .
-  
+          command: yarn eslint .
+      - run:
+          name: Unit Tests
+          command: yarn test
+
   node-8.10:
     working_directory: ~/app
     docker:
@@ -30,9 +38,13 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
+      - run: yarn
       - run:
           name: eslint
-          command: yarn && yarn eslint .
+          command: yarn eslint .
+      - run:
+          name: Unit Tests
+          command: yarn test
 
   publish:
     working_directory: ~/app
