@@ -1,12 +1,12 @@
 const rewire = require('rewire');
 const AWS = require('aws-sdk-mock');
 const { spy } = require('sinon');
-// const { assert } = require('chai');
+const { assert } = require('chai');
 const SUT = rewire('../../library/s3');
 
 describe('library/s3/index.js', () => {
   describe('uploadS3Directory()', () => {
-    // --- stubs --- //
+    // ---------------- stubs ------------------------- //
     const getFilePathsFromDirectoryStub = (sourceDir) => {
       const arr = [`${sourceDir}/some/file.txt`, `${sourceDir}/another/file.json`];
       return arr;
@@ -23,6 +23,9 @@ describe('library/s3/index.js', () => {
 
     // Rewire before each test block so that sinon.fake is reset
     beforeEach(() => {
+      SUT.__set__('getFilePathsFromDirectory', getFilePathsFromDirectoryStub);
+      SUT.__set__('getS3UploadParameters', getS3UploadParametersStub);
+      SUT.__set__('debugLog', debugLogStub);
       AWS.mock('S3', 'putObject', (params, callback) => {
         params.should.be.an.Object();
         params.should.have.property('Bucket', 'some-bucket');
@@ -30,22 +33,16 @@ describe('library/s3/index.js', () => {
         params.should.have.property('Body');
 
         callback(null, {
-          ETag: 'SomeETag"',
-          Location: 'PublicWebsiteLink',
-          Key: 'RandomKey',
-          Bucket: 'TestBucket'
+          ETag: 'some-etag',
+          Key: params.Key,
+          Bucket: 'some-bucket'
         });
       });
-      SUT.__set__('getFilePathsFromDirectory', getFilePathsFromDirectoryStub);
-      SUT.__set__('getS3UploadParameters', getS3UploadParametersStub);
-      SUT.__set__('debugLog', debugLogStub);
     });
 
-    // after(() => {
-    //   AWS.restore();
-    // });
 
     describe('When provided "tmp" as the source directory', () => {
+      // Suspend this test because of async issues with aws-sdk-mock S3
       xit('Should call debugLog()', (done) => {
         const sut = new SUT({
           accessKeyId: undefined,
@@ -58,10 +55,11 @@ describe('library/s3/index.js', () => {
           sourceDirectory: 'tmp',
         };
         return sut.uploadS3Directory(params)
-        // .then((resp) => {
-        //   console.log(resp);
-        //   assert(debugLogStub.called);
-        // })
+        .then(() => {
+          // console.log(resp);
+          assert(debugLogStub.called);
+          return Promise.resolve();
+        })
         .then(done)
         .catch(done);
       });

@@ -22,6 +22,7 @@
     "aws-sdk": "2.289.x"
   },
   "scripts": {
-    "test": "mocha --recursive test"
+    "lint": "eslint . --max-warnings 0",
+    "test": "yarn && yarn lint && mocha --recursive test"
   }
 }

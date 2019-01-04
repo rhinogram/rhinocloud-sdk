@@ -8,10 +8,6 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
-      - run: yarn
-      - run:
-          name: eslint
-          command: yarn eslint .
       - run:
           name: Unit Tests
           command: yarn test
@@ -23,10 +19,6 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
-      - run: yarn
-      - run:
-          name: eslint
-          command: yarn eslint .
       - run:
           name: Unit Tests
           command: yarn test
@@ -38,10 +30,6 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
-      - run: yarn
-      - run:
-          name: eslint
-          command: yarn eslint .
       - run:
           name: Unit Tests
           command: yarn test
