@@ -183,7 +183,7 @@ logAllBucketsInAccount();
 ```
 
 ### getBucket
-* `getBucket(bucketName)`: <Promise> Returns an array of objects that each contain:
+* `getBucket(parameters)`: <Promise> Returns an array of objects that each contain:
   * `Key` (string)
   * `LastModified` (timestamp)
   * `ETag` (string)
@@ -192,9 +192,9 @@ logAllBucketsInAccount();
   * `Owner` (object)
     * `DisplayName` (string)
     * `ID` (string)
-#### arguments
-  * `bucketName` (string) `required`: Name of the S3 Bucket to get bucket contents.
-  * `s3ObjectName` (string) `optional` : Name of the folder/file to get - this is a path to a file or folder with '/' Delimiter.
+#### parameters properties
+  * `bucket` (string) `required`: Name of the S3 Bucket to get bucket contents.
+  * `prefix` (string) `optional` : Name of the folder/file to get - this is a path to a file or folder with '/' Delimiter.
 #### Example
 ```bash
 async function logBucketContents(name) {
