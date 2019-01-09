@@ -96,6 +96,15 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     return Outputs;
   }
 
+  async function getStackParameters(stackName = '') {
+    if (!stackName) {
+      throw new Error('Must include stackName (string) for CloudFormation');
+    }
+    const { Stacks } = await cf.describeStacks({ StackName: stackName }).promise();
+    const { Parameters } = Stacks.pop();
+    return Parameters;
+  }
+
   async function stackExists(stackName = '') {
     if (!stackName) {
       throw new Error('Must include stackName (string) for CloudFormation');
@@ -174,6 +183,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   this.deleteStack = deleteStack;
   this.stackExists = stackExists;
   this.getStackOutputs = getStackOutputs;
+  this.getStackParameters = getStackParameters;
 }
 
 // -------------------------------- export ------------------------------- //

@@ -155,6 +155,41 @@ async function logStackOutputs() {
 logStackOutputs();
 ```
 
+### getStackParameters
+* `getStackParameters(stackName)`: <Promise> Get an Array of parameter objects used to create or update a CloudFormation stack.
+#### arguments
+* `stackName` (string) `required`: Name of a CloudFormation stack.
+#### Example
+```bash
+# cloudformation.yml
+# created with a stack name of s3-my-bucket
+...
+Parameters:
+  BucketName:
+    Type: String
+    Default: 'my-bucket-name'
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref 'BucketName'
+...
+```
+
+```bash
+# getParams.js
+async function getParameters() {
+  const params = await rhinocloud.cloudformation.getStackParameters('s3-my-bucket');
+  console.log(params);
+  # [
+  #  { ParameterKey: 'BucketName', ParameterValue: 'my-bucket-name' }
+  # ]
+}
+
+getParameters();
+```
+
 ### stackExists
 * `stackExists(stackName)`: <Promise> Returns `true` or `false` if a CloudFormation stack exists.
 #### arguments
@@ -183,7 +218,7 @@ logAllBucketsInAccount();
 ```
 
 ### getBucket
-* `getBucket(bucketName)`: <Promise> Returns an array of objects that each contain:
+* `getBucket(parameters)`: <Promise> Returns an array of objects that each contain:
   * `Key` (string)
   * `LastModified` (timestamp)
   * `ETag` (string)
@@ -192,9 +227,9 @@ logAllBucketsInAccount();
   * `Owner` (object)
     * `DisplayName` (string)
     * `ID` (string)
-#### arguments
-  * `bucketName` (string) `required`: Name of the S3 Bucket to get bucket contents.
-  * `s3ObjectName` (string) `optional` : Name of the folder/file to get - this is a path to a file or folder with '/' Delimiter.
+#### parameters properties
+  * `bucket` (string) `required`: Name of the S3 Bucket to get bucket contents.
+  * `prefix` (string) `optional` : Name of the folder/file to get - this is a path to a file or folder with '/' Delimiter.
 #### Example
 ```bash
 async function logBucketContents(name) {
