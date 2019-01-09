@@ -11,8 +11,8 @@ describe('library/cloudformation/index.js', () => {
               return new Promise((res) => res({
                 Stacks: [{
                   Parameters: [{
-                    Key: 'Name',
-                    Value: 'SomeName',
+                    ParameterKey: 'Name',
+                    ParameterValue: 'SomeName',
                   }],
                 }],
               }));
@@ -32,7 +32,7 @@ describe('library/cloudformation/index.js', () => {
         const cfParameters = await sut.getStackParameters(getParams);
         expect(cfParameters.length).to.equal(1);
         const firstCfParam = cfParameters[0];
-        expect(firstCfParam.Key).to.equal('Name');
+        expect(firstCfParam.ParameterKey).to.equal('Name');
       });
     });
   });

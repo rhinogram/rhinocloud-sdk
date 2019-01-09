@@ -155,6 +155,41 @@ async function logStackOutputs() {
 logStackOutputs();
 ```
 
+### getStackParameters
+* `getStackParameters(stackName)`: <Promise> Get an Array of parameter objects used to create or update a CloudFormation stack.
+#### arguments
+* `stackName` (string) `required`: Name of a CloudFormation stack.
+#### Example
+```bash
+# cloudformation.yml
+# created with a stack name of s3-my-bucket
+...
+Parameters:
+  BucketName:
+    Type: String
+    Default: 'my-bucket-name'
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref 'BucketName'
+...
+```
+
+```bash
+# getParams.js
+async function getParameters() {
+  const params = await rhinocloud.cloudformation.getStackParameters('s3-my-bucket');
+  console.log(params);
+  # [
+  #  { ParameterKey: 'BucketName', ParameterValue: 'my-bucket-name' }
+  # ]
+}
+
+getParameters();
+```
+
 ### stackExists
 * `stackExists(stackName)`: <Promise> Returns `true` or `false` if a CloudFormation stack exists.
 #### arguments
