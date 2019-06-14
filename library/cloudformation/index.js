@@ -1,16 +1,16 @@
 const fs = require('fs');
 const { CloudFormation } = require('aws-sdk');
 const apiVersions = require('../../apiVersions.json');
-const paramTools = require('./toolbox/parameter.tools');
+const { getCredentialsObject } = require('../_helpers');
+const {
+  getCloudFormationParameters,
+  getOptions,
+} = require('./toolbox/parameter.tools');
 const { debugLog } = require('../helpers');
 
-function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
-  const cf = new CloudFormation({
-    apiVersion: apiVersions.CloudFormation,
-    accessKeyId,
-    secretAccessKey,
-    region,
-  });
+function CloudFormationWrapper(credentialsOpts) {
+  const credentials = getCredentialsObject(credentialsOpts, apiVersions.CloudFormation);
+  const cf = new CloudFormation(credentials);
 
   // -------------------------- API functions ---------------------------- //
   async function changeTerminationProtection({ stackName, enableTerminationProtection } = {}) {
@@ -25,7 +25,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     return resp;
   }
   //eslint-disable-next-line consistent-return
-  async function cloudForm({ templatePath, stackName, options = {} } = {}) {
+  async function cloudForm({ templatePath, stackName, options } = {}) {
     if (!templatePath || !stackName) {
       throw new Error('Must include stackName (string) and templatePath (string) for CloudFormation');
     } else {
@@ -37,8 +37,10 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
 
     const stackAlreadyExists = await stackExists(stackName);
     const {
-      waitToComplete, parameters, enableTerminationProtection,
-    } = paramTools.getOptions(options);
+      waitToComplete,
+      parameters,
+      enableTerminationProtection,
+    } = getOptions(options);
 
     if (stackAlreadyExists) {
       await updateStack(stackName, templatePath, parameters);
@@ -59,7 +61,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
       TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
       EnableTerminationProtection: enableTerminationProtection,
       Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
-      Parameters: paramTools.getCloudFormationParameters(parameters),
+      Parameters: getCloudFormationParameters(parameters),
     };
     const resp = await cf.createStack(params).promise();
     return resp;
@@ -71,7 +73,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
     }
     const deleteParams = { StackName: stackName };
     const resp = await cf.deleteStack(deleteParams).promise();
-    const { waitToComplete } = paramTools.getOptions(options);
+    const { waitToComplete } = getOptions(options);
     if (waitToComplete) {
       try {
         await waitOnStackToStabilize(stackName);
@@ -131,7 +133,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
         StackName: stackName,
         TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
         Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
-        Parameters: paramTools.getCloudFormationParameters(parameters),
+        Parameters: getCloudFormationParameters(parameters),
       };
       const resp = await cf.updateStack(updateParams).promise();
       return resp;
@@ -146,31 +148,34 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   }
 
 
-  async function waitOnStackToStabilize(stackName, retry = 0) {
+  async function waitOnStackToStabilize(stackName, msLeftBeforeTimeout) {
     if (!stackName) {
       throw new Error('Must include stackName (string) for CloudFormation');
     }
     const describeParams = { StackName: stackName };
     const WAIT_INTERVAL = 5000;
-    if (retry < 240) {
+    // use explicit undefined check because negative numbers are truthy
+    if (msLeftBeforeTimeout === undefined || msLeftBeforeTimeout > 0) {
       const { Stacks } = await cf.describeStacks(describeParams).promise();
       const { StackStatus } = Stacks[0];
 
       debugLog(StackStatus);
 
-      if (StackStatus.includes('COMPLETE')) {
+      if (StackStatus.includes('ROLLBACK') || StackStatus.includes('FAILED')) {
+        // DEBUG log stack events to assist with troubleshooting
+        const { StackEvents: events } = await cf.describeStackEvents({ StackName: stackName }).promise();
+        debugLog(events);
+        throw new Error(`${stackName} experienced a CloudFormation error.`);
+      } else if (StackStatus.includes('COMPLETE')) {
         debugLog('done!');
         return {
           stackName,
           complete: true,
         };
-      } if (StackStatus.includes('FAILED')) {
-        throw new Error(`${stackName} experience a CloudFormation error.`);
       } else {
-        let retryCount = retry;
-        retryCount += 1;
         await new Promise((res) => setTimeout(res, WAIT_INTERVAL));
-        return waitOnStackToStabilize(stackName, retryCount);
+        const newTimeLeft = msLeftBeforeTimeout === undefined ? undefined : msLeftBeforeTimeout - WAIT_INTERVAL;
+        return waitOnStackToStabilize(stackName, newTimeLeft);
       }
     } else {
       throw new Error(`Timeout waiting for CloudFormation stack: ${stackName}`);
@@ -184,6 +189,7 @@ function CloudFormationWrapper({ accessKeyId, secretAccessKey, region }) {
   this.stackExists = stackExists;
   this.getStackOutputs = getStackOutputs;
   this.getStackParameters = getStackParameters;
+  this.waitOnStackToStabilize = waitOnStackToStabilize;
 }
 
 // -------------------------------- export ------------------------------- //

@@ -24,7 +24,7 @@ module.exports.getS3UploadParameters = ({
       ...options.grantRead && { GrantRead: options.grantRead },
       ...options.grantReadAcp && { GrantReadACP: options.grantReadAcp },
       ...options.grantWriteAcp && { GrantWriteCP: options.grantWriteAcp },
-      ...options.metadata && { MetaData: options.metadata },
+      ...options.metadata && { Metadata: options.metadata },
       ...options.sseCustomerAlgorithm && { SSECustomerAlgorithm: options.sseCustomerAlgorithm },
       ...options.sseCustomerKey && { SSECustomerKey: options.sseCustomerKey },
       ...options.sseCustomerKeyMd5 && { SSECustomerKeyMD5: options.sseCustomerKeyMd5 },
