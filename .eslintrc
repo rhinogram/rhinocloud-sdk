@@ -1,11 +1,13 @@
 {
   "env": {
     "node": true,
-    "es6": true
+    "es6": true,
+    "mocha": true
   },
   "parserOptions": {
     "ecmaVersion": 2018
   },
+  "extends": "eslint:recommended",
   "rules": {
     "generator-star-spacing": 0,
     "key-spacing": [2, { "mode": "minimum" }],

@@ -7,14 +7,11 @@ const {
   getFileNameFromS3Key,
 } = require('./toolbox/file.tools');
 const { debugLog } = require('../helpers.js');
+const { getCredentialsObject } = require('../_helpers');
 
-function s3Wrapper({ accessKeyId, secretAccessKey, region }) {
-  const s3 = new S3({
-    apiVersion: apiVersions.S3,
-    accessKeyId,
-    secretAccessKey,
-    region,
-  });
+function s3Wrapper(credentialsOpts) {
+  const credentials = getCredentialsObject(credentialsOpts, apiVersions.S3);
+  const s3 = new S3(credentials);
 
   // ---------------------------- API functions --------------------------- //
   async function listBuckets() {

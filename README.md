@@ -61,6 +61,7 @@ turnOnTerminationProtection();
   * `stackName` (string) `required`: Name of a CloudFormation stack (must be unique across AWS account).
   * `options` (object) `optional`:
     * `waitToComplete` (boolean):  Wait on a success or failure response (defaults to `true`).
+    * `timeout` (number) `optional`: How long in milliseconds to wait, if `waitToComplete` is set to `true`, for the stack to complete before timing out. The CloudFormation stack will continue what it is doing even though the function errors to stop making CloudFormation API calls.
     * `parameters` (array): CloudFormation parameters that correlate to the CloudFormation template. Each object in the array must contain:
       * `key` (string): Name of the parameter.
       * `value` (any): Value of the parameter.

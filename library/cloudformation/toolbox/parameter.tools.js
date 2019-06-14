@@ -7,8 +7,14 @@ module.exports.getCloudFormationParameters = (params = []) => params.map((p) => 
   });
 
 
-module.exports.getOptions = (options = {}) => ({
-    waitToComplete: (options.waitToComplete === undefined) ? true : !!options.waitToComplete,
-    parameters: options.parameters || [],
-    enableTerminationProtection: (options.enableTerminationProtection === undefined) ? false : !!options.enableTerminationProtection,
-  });
+module.exports.getOptions = ({
+  waitToComplete = true,
+  parameters = [],
+  enableTerminationProtection = false,
+  timeout,
+}) => ({
+  waitToComplete,
+  parameters,
+  enableTerminationProtection,
+  timeout,
+});

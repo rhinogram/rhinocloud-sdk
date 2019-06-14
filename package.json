@@ -1,6 +1,6 @@
 {
   "name": "rhinocloud-sdk",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Rhinogram's JavaScript-friendly toolbox for CloudFormation deployments",
   "engines": {
     "yarn": "1.x",
@@ -22,6 +22,6 @@
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
-    "test": "yarn && yarn lint && mocha --recursive test"
+    "test": "yarn && yarn lint && mocha --recursive test --timeout 9000"
   }
 }
