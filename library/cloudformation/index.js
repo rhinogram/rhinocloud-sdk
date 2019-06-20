@@ -25,7 +25,7 @@ function CloudFormationWrapper(credentialsOpts) {
     return resp;
   }
   //eslint-disable-next-line consistent-return
-  async function cloudForm({ templatePath, stackName, options } = {}) {
+  async function cloudForm({ templatePath, stackName, options={} } = {}) {
     if (!templatePath || !stackName) {
       throw new Error('Must include stackName (string) and templatePath (string) for CloudFormation');
     } else {
