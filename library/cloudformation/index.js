@@ -56,17 +56,27 @@ function CloudFormationWrapper(credentialsOpts) {
 
   async function createChangeSet(templatePath, stackName, parameters) {
     const changeSetName = `${stackName}-${new Date().getTime()}`;
+    const currentParameters = await getStackParameters(stackName);
+    const newParameters = getCloudFormationParameters(parameters);
+    const updatedParameters = currentParameters.map(({ ParameterKey, ParameterValue }) => {
+      const newParam = newParameters.find((p) => p.ParameterKey === ParameterKey);
+      if (newParam) {
+        debugLog(`Using new parameter value for ${ParameterKey}`);
+        return { ParameterKey, ParameterValue: newParam.ParameterValue };
+      }
+      debugLog(`Using existing value for ${ParameterKey}`);
+      return { ParameterKey, ParameterValue };
+    });
+
     const { Id: changeSetArn } = await cf.createChangeSet({
       ChangeSetName: changeSetName,
-      Parameters: getCloudFormationParameters(parameters),
+      Parameters: updatedParameters,
       StackName: stackName,
       TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
     }).promise();
-    const describeChangeSetParams = {
-      ChangeSetName: changeSetArn,
-      StackName: stackName,
-    };
+
     try {
+      debugLog(`Waiting for ChangeSet: ${changeSetArn} to finish creating...`);
       await cf.waitFor('changeSetCreateComplete', { ChangeSetName: changeSetArn }).promise();
     } catch (error) {
       if (error.message === 'Resource is not in the state changeSetCreateComplete') {
@@ -75,6 +85,11 @@ function CloudFormationWrapper(credentialsOpts) {
         throw error;
       }
     }
+
+    const describeChangeSetParams = {
+      ChangeSetName: changeSetArn,
+      StackName: stackName,
+    };
     return cf.describeChangeSet(describeChangeSetParams).promise();
   }
 
