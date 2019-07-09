@@ -23,7 +23,7 @@ const rhinocloud = new Rhinocloud({
   * `AWS_REGION`
 
 
-* Setting `process.env.DEBUG === true` will enable debug mode.
+* Setting `process.env.DEBUG = true` or `process.env.LOG_LEVEL = 'debug'` will enable debug mode.
 
 * Example using `dotenv` library with `rhinocloud-sdk`: https://www.npmjs.com/package/dotenv
 ```bash
