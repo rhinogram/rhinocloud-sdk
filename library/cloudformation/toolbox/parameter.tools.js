@@ -12,9 +12,11 @@ module.exports.getOptions = ({
   parameters = [],
   enableTerminationProtection = false,
   timeout,
+  protectedResourceTypes = [],
 }) => ({
   waitToComplete,
   parameters,
   enableTerminationProtection,
   timeout,
+  protectedResourceTypes,
 });

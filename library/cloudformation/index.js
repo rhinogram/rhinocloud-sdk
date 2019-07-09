@@ -24,6 +24,7 @@ function CloudFormationWrapper(credentialsOpts) {
     const resp = await cf.updateTerminationProtection(updateParams).promise();
     return resp;
   }
+
   //eslint-disable-next-line consistent-return
   async function cloudForm({ templatePath, stackName, options={} } = {}) {
     if (!templatePath || !stackName) {
@@ -40,16 +41,56 @@ function CloudFormationWrapper(credentialsOpts) {
       waitToComplete,
       parameters,
       enableTerminationProtection,
+      protectedResourceTypes,
     } = getOptions(options);
 
     if (stackAlreadyExists) {
-      await updateStack(stackName, templatePath, parameters);
+      await updateStack(stackName, templatePath, parameters, protectedResourceTypes);
     } else {
       await createStack(templatePath, stackName, parameters, enableTerminationProtection);
     }
     if (waitToComplete) {
       return waitOnStackToStabilize(stackName);
     }
+  }
+
+  async function createChangeSet(templatePath, stackName, parameters) {
+    const changeSetName = `${stackName}-${new Date().getTime()}`;
+    const currentParameters = await getStackParameters(stackName);
+    const newParameters = getCloudFormationParameters(parameters);
+    const updatedParameters = currentParameters.map(({ ParameterKey, ParameterValue }) => {
+      const newParam = newParameters.find((p) => p.ParameterKey === ParameterKey);
+      if (newParam) {
+        debugLog(`Using new parameter value for ${ParameterKey}`);
+        return { ParameterKey, ParameterValue: newParam.ParameterValue };
+      }
+      debugLog(`Using existing value for ${ParameterKey}`);
+      return { ParameterKey, ParameterValue };
+    });
+
+    const { Id: changeSetArn } = await cf.createChangeSet({
+      ChangeSetName: changeSetName,
+      Parameters: updatedParameters,
+      StackName: stackName,
+      TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
+    }).promise();
+
+    try {
+      debugLog(`Waiting for ChangeSet: ${changeSetArn} to finish creating...`);
+      await cf.waitFor('changeSetCreateComplete', { ChangeSetName: changeSetArn }).promise();
+    } catch (error) {
+      if (error.message === 'Resource is not in the state changeSetCreateComplete') {
+        debugLog(`ChangeSet: ${changeSetArn} does not contain any changes.`);
+      } else {
+        throw error;
+      }
+    }
+
+    const describeChangeSetParams = {
+      ChangeSetName: changeSetArn,
+      StackName: stackName,
+    };
+    return cf.describeChangeSet(describeChangeSetParams).promise();
   }
 
   async function createStack(templatePath, stackName, parameters = [], enableTerminationProtection) {
@@ -124,29 +165,41 @@ function CloudFormationWrapper(credentialsOpts) {
     }
   }
 
-  async function updateStack(stackName, templatePath, parameters = []) {
+  async function updateStack(stackName, templatePath, parameters = [], protectedResourceTypes = []) {
     if (!stackName || !templatePath) {
       throw new Error('Must include stackName (string) and templatesPath (string) for CloudFormation');
     }
-    try {
-      const updateParams = {
-        StackName: stackName,
-        TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
-        Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
-        Parameters: getCloudFormationParameters(parameters),
-      };
-      const resp = await cf.updateStack(updateParams).promise();
-      return resp;
-    } catch (error) {
-      const noUpdatesMsg = 'No updates are to be performed.';
-      if (error.message === noUpdatesMsg) {
-        debugLog(noUpdatesMsg);
-        return null;
+
+    const { ExecutionStatus, StatusReason, Changes = [], ChangeSetId } = await createChangeSet(templatePath, stackName, parameters);
+
+    if (ExecutionStatus === 'AVAILABLE') {
+      const resourcesToBeChanged = Changes.map((c) => c.ResourceChange);
+      const problematicUpdates = resourcesToBeChanged.filter(({ Replacement, ResourceType }) => {
+        const isProtectedResource = protectedResourceTypes.includes(ResourceType);
+        return isProtectedResource && Replacement === 'True';
+      });
+      if (problematicUpdates.length > 0) {
+        const problemChangesStr = JSON.stringify(problematicUpdates);
+        throw new Error(`ChangeSet: ${ChangeSetId} would cause the following protected resources to be replaced: ${problemChangesStr}. Not applying changes.`);
+      } else {
+        // apply changes
+        await cf.executeChangeSet({
+          StackName: stackName,
+          ChangeSetName: ChangeSetId,
+        }).promise();
       }
-      throw error;
+    } else if (StatusReason === 'The submitted information didn\'t contain changes. Submit different information to create a change set.') {
+      debugLog(`No changes detected to CloudFormation stack: ${stackName}`);
+
+      // delete ChangeSet
+      await cf.deleteChangeSet({
+        ChangeSetName: ChangeSetId,
+        StackName: stackName,
+      }).promise();
+    } else {
+      throw new Error(`ChangeSet: ${ChangeSetId} execution status is: ${ExecutionStatus} and cannot be applied.`);
     }
   }
-
 
   async function waitOnStackToStabilize(stackName, msLeftBeforeTimeout) {
     if (!stackName) {
