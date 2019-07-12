@@ -70,6 +70,7 @@ function CloudFormationWrapper(credentialsOpts) {
 
     const { Id: changeSetArn } = await cf.createChangeSet({
       ChangeSetName: changeSetName,
+      Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
       Parameters: updatedParameters,
       StackName: stackName,
       TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
