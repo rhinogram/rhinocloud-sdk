@@ -67,6 +67,7 @@ turnOnTerminationProtection();
       * `value` (any): Value of the parameter.
     * `protectedResourceTypes` (array) `optional`: AWS Resource types that will cause the function to error out when the ChangeSet calls for `Replacement` (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html).
     * `enableTerminationProtection` (boolean) `optional`: Enable termination protection of CloudFormation stack. Only applies to new stacks (defaults to `false`).
+    * `notificationArns` (array) `optional`: Array of ARN strings that identify SNS Topics that will be triggered on CloudFormation state change.
 #### Example
 ```bash
 # template.yml
