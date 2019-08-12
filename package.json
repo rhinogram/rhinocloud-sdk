@@ -12,7 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "chai": "4.2.x",
-    "eslint": "6.0.x",
+    "eslint": "6.1.x",
     "mocha": "5.2.x",
     "rewire": "4.0.x",
     "sinon": "7.2.x"
