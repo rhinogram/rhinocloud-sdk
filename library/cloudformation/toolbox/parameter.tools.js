@@ -14,6 +14,7 @@ module.exports.getOptions = ({
   timeout,
   protectedResourceTypes = [],
   notificationArns = [],
+  templateUrl,
 }) => ({
   waitToComplete,
   parameters,
@@ -21,4 +22,5 @@ module.exports.getOptions = ({
   timeout,
   protectedResourceTypes,
   notificationArns,
+  templateUrl,
 });
