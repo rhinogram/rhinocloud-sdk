@@ -57,7 +57,8 @@ turnOnTerminationProtection();
 ### cloudForm
 * `cloudForm(parameters)`: <Promise> Update existing CloudFormation stack or create new stack if it does not already exist.
 #### parameters properties
-  * `templatePath` (string) `required`: Absolute file path of a CloudFormation template (can be JSON or YAML).
+  * `templatePath` (string) `conditional`: Absolute file path of a CloudFormation template (can be JSON or YAML). For first deployment, either `templatePath` or `templateUrl` is required.
+  * `templateUrl` (string) `conditional`: Https URL of a template in S3. For first deployment, either `templatePath` or `templateUrl` is required.
   * `stackName` (string) `required`: Name of a CloudFormation stack (must be unique across AWS account).
   * `options` (object) `optional`:
     * `waitToComplete` (boolean):  Wait on a success or failure response (defaults to `true`).

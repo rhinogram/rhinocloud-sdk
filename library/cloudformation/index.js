@@ -26,10 +26,10 @@ function CloudFormationWrapper(credentialsOpts) {
   }
 
   //eslint-disable-next-line consistent-return
-  async function cloudForm({ templatePath, stackName, options={} } = {}) {
-    if (!templatePath || !stackName) {
-      throw new Error('Must include stackName (string) and templatePath (string) for CloudFormation');
-    } else {
+  async function cloudForm({ templatePath, templateUrl, stackName, options={} } = {}) {
+    if (!stackName) {
+      throw new Error('Must include stackName (string) for CloudFormation');
+    } else if (templatePath) {
       const fileExists = fs.existsSync(templatePath);
       if (!fileExists) {
         throw new Error(`CloudFormation template: ${templatePath} not found`);
@@ -46,16 +46,16 @@ function CloudFormationWrapper(credentialsOpts) {
     } = getOptions(options);
 
     if (stackAlreadyExists) {
-      await updateStack(stackName, templatePath, parameters, notificationArns, protectedResourceTypes);
+      await updateStack(stackName, templatePath, parameters, notificationArns, protectedResourceTypes, templateUrl);
     } else {
-      await createStack(templatePath, stackName, parameters, notificationArns, enableTerminationProtection);
+      await createStack(templatePath, stackName, parameters, notificationArns, enableTerminationProtection, templateUrl);
     }
     if (waitToComplete) {
       return waitOnStackToStabilize(stackName);
     }
   }
 
-  async function createChangeSet(templatePath, stackName, parameters, notificationArns) {
+  async function createChangeSet(templatePath, stackName, parameters, notificationArns, templateUrl) {
     const changeSetName = `${stackName}-${new Date().getTime()}`;
     const currentParameters = await getStackParameters(stackName);
     const newParameters = getCloudFormationParameters(parameters);
@@ -74,7 +74,9 @@ function CloudFormationWrapper(credentialsOpts) {
       Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
       Parameters: updatedParameters,
       StackName: stackName,
-      TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
+      ...templatePath && { TemplateBody: fs.readFileSync(templatePath, 'utf-8') },
+      ...templateUrl && { TemplateURL: templateUrl },
+      UsePreviousTemplate: (!templateUrl && !templatePath),
       NotificationARNs: notificationArns,
     }).promise();
 
@@ -96,13 +98,15 @@ function CloudFormationWrapper(credentialsOpts) {
     return cf.describeChangeSet(describeChangeSetParams).promise();
   }
 
-  async function createStack(templatePath, stackName, parameters = [], notificationArns = [], enableTerminationProtection) {
-    if (!templatePath || !stackName) {
-      throw new Error('Must include templatePath (string) and stackName (string) for CloudFormation');
+  async function createStack(templatePath, stackName, parameters = [], notificationArns = [], enableTerminationProtection, templateUrl) {
+    if ((!templatePath && !templateUrl) || !stackName) {
+      throw new Error('Must include templatePath (string) or templateUrl (string) and stackName (string) for CloudFormation');
     }
+
     const params = {
       StackName: stackName,
-      TemplateBody: fs.readFileSync(templatePath, 'utf-8'),
+      ...templatePath && { TemplateBody: fs.readFileSync(templatePath, 'utf-8') },
+      ...templateUrl && { TemplateURL: templateUrl },
       EnableTerminationProtection: enableTerminationProtection,
       Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
       Parameters: getCloudFormationParameters(parameters),
@@ -169,12 +173,12 @@ function CloudFormationWrapper(credentialsOpts) {
     }
   }
 
-  async function updateStack(stackName, templatePath, parameters = [], notificationArns = [], protectedResourceTypes = []) {
-    if (!stackName || !templatePath) {
+  async function updateStack(stackName, templatePath, parameters = [], notificationArns = [], protectedResourceTypes = [], templateUrl) {
+    if (!stackName) {
       throw new Error('Must include stackName (string) and templatesPath (string) for CloudFormation');
     }
 
-    const { ExecutionStatus, StatusReason, Changes = [], ChangeSetId } = await createChangeSet(templatePath, stackName, parameters, notificationArns);
+    const { ExecutionStatus, StatusReason, Changes = [], ChangeSetId } = await createChangeSet(templatePath, stackName, parameters, notificationArns, templateUrl);
 
     if (ExecutionStatus === 'AVAILABLE') {
       const resourcesToBeChanged = Changes.map((c) => c.ResourceChange);
