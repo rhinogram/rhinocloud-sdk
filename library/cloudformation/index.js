@@ -26,10 +26,10 @@ function CloudFormationWrapper(credentialsOpts) {
   }
 
   //eslint-disable-next-line consistent-return
-  async function cloudForm({ templatePath, stackName, options={} } = {}) {
-    if (!templatePath || !stackName) {
-      throw new Error('Must include stackName (string) and templatePath (string) for CloudFormation');
-    } else {
+  async function cloudForm({ templatePath, templateUrl, stackName, options={} } = {}) {
+    if (!stackName) {
+      throw new Error('Must include stackName (string) for CloudFormation');
+    } else if (templatePath) {
       const fileExists = fs.existsSync(templatePath);
       if (!fileExists) {
         throw new Error(`CloudFormation template: ${templatePath} not found`);
@@ -43,7 +43,6 @@ function CloudFormationWrapper(credentialsOpts) {
       enableTerminationProtection,
       protectedResourceTypes,
       notificationArns,
-      templateUrl,
     } = getOptions(options);
 
     if (stackAlreadyExists) {
