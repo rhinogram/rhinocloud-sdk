@@ -59,15 +59,18 @@ function CloudFormationWrapper(credentialsOpts) {
     const changeSetName = `${stackName}-${new Date().getTime()}`;
     const currentParameters = await getStackParameters(stackName);
     const newParameters = getCloudFormationParameters(parameters);
-    const updatedParameters = currentParameters.map(({ ParameterKey, ParameterValue }) => {
-      const newParam = newParameters.find((p) => p.ParameterKey === ParameterKey);
-      if (newParam) {
-        debugLog(`Using new parameter value for ${ParameterKey}`);
-        return { ParameterKey, ParameterValue: newParam.ParameterValue };
-      }
-      debugLog(`Using existing value for ${ParameterKey}`);
-      return { ParameterKey, ParameterValue };
-    });
+    const updatedParameters = currentParameters
+      .map(({ ParameterKey, ParameterValue }) => {
+        const newParam = newParameters.find((p) => p.ParameterKey === ParameterKey);
+        if (newParam) {
+          debugLog(`Using new parameter value for ${ParameterKey}`);
+          return { ParameterKey, ParameterValue: newParam.ParameterValue };
+        }
+        debugLog(`Using existing value for ${ParameterKey}`);
+        return { ParameterKey, ParameterValue };
+      })
+      // add new parameters, not currently listed in the existing template
+      .concat(newParameters.filter(newParam => !currentParameters.find(currParam => currParam.ParameterKey === newParam.ParameterKey)));
 
     const { Id: changeSetArn } = await cf.createChangeSet({
       ChangeSetName: changeSetName,
