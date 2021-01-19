@@ -43,12 +43,13 @@ function CloudFormationWrapper(credentialsOpts) {
       enableTerminationProtection,
       protectedResourceTypes,
       notificationArns,
+      onFailure,
     } = getOptions(options);
 
     if (stackAlreadyExists) {
       await updateStack(stackName, templatePath, parameters, notificationArns, protectedResourceTypes, templateUrl);
     } else {
-      await createStack(templatePath, stackName, parameters, notificationArns, enableTerminationProtection, templateUrl);
+      await createStack(templatePath, stackName, parameters, notificationArns, enableTerminationProtection, templateUrl, onFailure);
     }
     if (waitToComplete) {
       return waitOnStackToStabilize(stackName);
@@ -68,6 +69,7 @@ function CloudFormationWrapper(credentialsOpts) {
       ...templateUrl && { TemplateURL: templateUrl },
       UsePreviousTemplate: (!templateUrl && !templatePath),
       NotificationARNs: notificationArns,
+      IncludeNestedStacks: true,
     }).promise();
 
     try {
@@ -88,7 +90,7 @@ function CloudFormationWrapper(credentialsOpts) {
     return cf.describeChangeSet(describeChangeSetParams).promise();
   }
 
-  async function createStack(templatePath, stackName, parameters = [], notificationArns = [], enableTerminationProtection, templateUrl) {
+  async function createStack(templatePath, stackName, parameters = [], notificationArns = [], enableTerminationProtection, templateUrl, onFailure) {
     if ((!templatePath && !templateUrl) || !stackName) {
       throw new Error('Must include templatePath (string) or templateUrl (string) and stackName (string) for CloudFormation');
     }
@@ -101,7 +103,9 @@ function CloudFormationWrapper(credentialsOpts) {
       Capabilities: ['CAPABILITY_NAMED_IAM', 'CAPABILITY_IAM'],
       Parameters: getCloudFormationParameters(parameters),
       NotificationARNs: notificationArns,
+      OnFailure: onFailure,
     };
+    debugLog(params);
     const resp = await cf.createStack(params).promise();
     return resp;
   }
