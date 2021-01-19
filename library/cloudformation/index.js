@@ -69,7 +69,6 @@ function CloudFormationWrapper(credentialsOpts) {
       ...templateUrl && { TemplateURL: templateUrl },
       UsePreviousTemplate: (!templateUrl && !templatePath),
       NotificationARNs: notificationArns,
-      IncludeNestedStacks: true,
     }).promise();
 
     try {
