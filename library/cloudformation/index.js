@@ -90,7 +90,7 @@ function CloudFormationWrapper(credentialsOpts) {
     return cf.describeChangeSet(describeChangeSetParams).promise();
   }
 
-  async function createStack(templatePath, stackName, parameters = [], notificationArns = [], enableTerminationProtection, templateUrl, onFailure = 'ROLLBACK') {
+  async function createStack(templatePath, stackName, parameters = [], notificationArns = [], enableTerminationProtection, templateUrl, onFailure) {
     if ((!templatePath && !templateUrl) || !stackName) {
       throw new Error('Must include templatePath (string) or templateUrl (string) and stackName (string) for CloudFormation');
     }
@@ -105,6 +105,7 @@ function CloudFormationWrapper(credentialsOpts) {
       NotificationARNs: notificationArns,
       OnFailure: onFailure,
     };
+    debugLog(params);
     const resp = await cf.createStack(params).promise();
     return resp;
   }
