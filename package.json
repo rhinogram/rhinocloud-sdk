@@ -1,11 +1,11 @@
 {
   "name": "rhinocloud-sdk",
-  "version": "1.1.83",
+  "version": "1.1.84",
   "description": "Rhinogram's JavaScript-friendly toolbox for CloudFormation deployments",
   "engines": {
-    "yarn": "1.x",
+    "yarn": ">=1.x",
     "node": ">=8.x",
-    "npm": "5.x"
+    "npm": ">=5.x"
   },
   "main": "index.js",
   "author": "Rhinogram, LLC",
