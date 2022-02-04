@@ -165,7 +165,7 @@ function s3Wrapper(credentialsOpts) {
       };
       const objectResponse = await s3.listObjectsV2(listParams).promise();
       let { Contents: keyObjects } = objectResponse;
-      const { IsTruncated, NextContinuationToken }  = objectResponse;
+      const { IsTruncated, NextContinuationToken } = objectResponse;
       if (IsTruncated) {
         keyObjects = await fetchTruncatedS3Files({ keyObjects, params: listParams, NextContinuationToken });
       }
@@ -220,32 +220,34 @@ function s3Wrapper(credentialsOpts) {
       const {
         Versions: keyVersionObjects, IsTruncated, NextKeyMarker, VersionIdMarker,
       } = await s3.listObjectVersions(listVersionParams).promise();
-      if (IsTruncated) {
-        const keyVersionArrays = await fetchTruncatedVersionS3Files({
-          params: listVersionParams,
-          keyObjects: keyVersionObjects,
-          NextKeyMarker,
-          ...VersionIdMarker && { VersionIdMarker },
-        });
-        let counter = 0;
+      if (keyVersionObjects.length > 0) {
+        if (IsTruncated) {
+          const keyVersionArrays = await fetchTruncatedVersionS3Files({
+            params: listVersionParams,
+            keyObjects: keyVersionObjects,
+            NextKeyMarker,
+            ...VersionIdMarker && { VersionIdMarker },
+          });
+          let counter = 0;
 
-        for (const keyVersionArray of keyVersionArrays) {
-          const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
-          const keyVersionMap = keyVersionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
-          const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
-          counter += keyVersionArray.length;
-          if (keyVersionArray.length > 0) {
-            await s3.deleteObjects(deleteParams).promise();
+          for (const keyVersionArray of keyVersionArrays) {
+            const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
+            const keyVersionMap = keyVersionArray.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
+            const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
+            counter += keyVersionArray.length;
+            if (keyVersionArray.length > 0) {
+              await s3.deleteObjects(deleteParams).promise();
+            }
           }
+          debugLog(`deleted ${counter} files from S3 Bucket: ${sourceBucket}`);
+          return undefined;
         }
-        debugLog(`deleted ${counter} files from S3 Bucket: ${sourceBucket}`);
-        return undefined;
+        const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
+        const keyVersionMap = keyVersionObjects.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
+        const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
+        await s3.deleteObjects(deleteParams).promise();
+        debugLog(`deleted ${keyVersionObjects.length} files from S3 Bucket: ${sourceBucket}`);
       }
-      const excludedFiles = (!!options && options.exclude) ? options.exclude : [];
-      const keyVersionMap = keyVersionObjects.map((k) => ({ Key: k.Key, VersionId: k.VersionId })).filter((k) => !excludedFiles.includes(k));
-      const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
-      await s3.deleteObjects(deleteParams).promise();
-      debugLog(`deleted ${keyVersionObjects.length} files from S3 Bucket: ${sourceBucket}`);
       return undefined;
     }
   }
