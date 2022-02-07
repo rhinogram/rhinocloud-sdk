@@ -247,6 +247,8 @@ function s3Wrapper(credentialsOpts) {
         const deleteParams = getS3DeleteParameters({ sourceBucket, sourceS3Files: keyVersionMap, options });
         await s3.deleteObjects(deleteParams).promise();
         debugLog(`deleted ${keyVersionObjects.length} files from S3 Bucket: ${sourceBucket}`);
+      } else {
+        debugLog(`either directory for organization is empty or not present in S3 Bucket: ${sourceBucket}`);
       }
       return undefined;
     }
