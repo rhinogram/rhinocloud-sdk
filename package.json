@@ -18,7 +18,7 @@
     "sinon": "7.2.x"
   },
   "dependencies": {
-    "aws-sdk": "2.289.x"
+    "aws-sdk": "2.814.x"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
